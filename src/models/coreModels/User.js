@@ -74,6 +74,14 @@ const userSchema = new Schema({
 		type: Boolean,
 		default: false,
 	},
+	isDowngradeMailSent: {
+		type: Boolean,
+		default: false,
+	},
+	isTrialReminderSent: {
+		type: Boolean,
+		default: false,
+	},
 	verifiedImage: String,
 	socket_id: {
 		type: String,

@@ -48,7 +48,7 @@ router.route('/user/delete-image').patch(adminAuth.isValidAuthToken, catchErrors
 router
   .route('/user/change-password')
   .patch(adminAuth.isValidAuthToken, catchErrors(adminController.updatePassword));
-  router
+router
   .route('/user/change-email')
   .patch(adminAuth.isValidAuthToken, catchErrors(adminController.updateEmail));
 
@@ -62,6 +62,7 @@ router.route('/contact-us').patch(adminAuth.isValidAuthToken, catchErrors(contac
 
 router.route('/user/plan-purchase').post(adminAuth.isValidAuthToken, catchErrors(userSubscriptionController.create));
 router.route('/user/plan-purchase/:userId').get(adminAuth.isValidAuthToken, catchErrors(userSubscriptionController.read));
+router.route('/user/plan-purchase').delete(adminAuth.isValidAuthToken, catchErrors(userSubscriptionController.remove));
 
 // //_______________________________ Favourite management_______________________________
 
@@ -83,6 +84,7 @@ router.route('/interest').get(catchErrors(interestController.list));
 
 router.route('/user/block').post(adminAuth.isValidAuthToken, catchErrors(blockController.create));
 router.route('/user/block').get(adminAuth.isValidAuthToken, catchErrors(blockController.list));
+router.route('/user/block-list').get(adminAuth.isValidAuthToken, catchErrors(blockController.blockedUserList));
 
 // //_______________________________ Report management_______________________________
 
@@ -109,7 +111,7 @@ router
   .route('/admin/profile/password')
   .patch(catchErrors(adminController.updateProfilePassword));
 
-  // //_______________________________ Page content management_______________________________
+// //_______________________________ Page content management_______________________________
 
 router.route('/page-content').post(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'content-image', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(pageContentController.create));
 router.route('/page-content').patch(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'content-image', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(pageContentController.update));
@@ -117,30 +119,33 @@ router.route('/page-content').get(adminAuth.isValidAuthToken, catchErrors(pageCo
 router.route('/page-content/:id').get(catchErrors(pageContentController.read));
 router.route('/page-content/read/:slug').get(catchErrors(pageContentController.read));
 
-  // //_______________________________ Blog management_______________________________
+// //_______________________________ Blog management_______________________________
 
-  router.route('/blog').post(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'blog-images', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(blogController.create));
-  router.route('/blog').patch(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'blog-images', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(blogController.update));
-  router.route('/blog').get(catchErrors(blogController.list));
-  router.route('/blog/:id').get(catchErrors(blogController.read));
-  router.route('/blog/:id').delete(adminAuth.isValidAuthToken, catchErrors(blogController.delete));
-  router.route('/blog/read/:slug').get(catchErrors(blogController.read));
+router.route('/blog').post(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'blog-images', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(blogController.create));
+router.route('/blog').patch(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'blog-images', fieldName: 'bannerImage', fileType: 'image' }), catchErrors(blogController.update));
+router.route('/blog').get(catchErrors(blogController.list));
+router.route('/blog/:id').get(catchErrors(blogController.read));
+router.route('/blog/:id').delete(adminAuth.isValidAuthToken, catchErrors(blogController.delete));
+router.route('/blog/read/:slug').get(catchErrors(blogController.read));
 
 
 router.route('/get-token').post(catchErrors(chatController.getToken));
 
 // //_______________________________ Chat attachment_________________________________________
 
-router
-  .route('/chat/attachment')
-  .post(
-    singleStorageUpload({ entity: 'chatAttachment', fieldName: 'photo' }),
-    catchErrors(chatController.upload)
-  );
+router.route('/chat/attachment').post(adminAuth.isValidAuthToken, singleStorageUpload({ entity: 'chatAttachment', fieldName: 'photo' }),
+  catchErrors(chatController.upload)
+);
+router.route('/chat/attachment/:recipientId').get(adminAuth.isValidAuthToken,
+  catchErrors(chatController.getAttachment)
+);
+router.route('/chat/attachment').delete(adminAuth.isValidAuthToken, catchErrors(chatController.delete));
 
-  router.route('/user/send-waitlist-mail').post(catchErrors(adminController.sendWaitlistMail));
 
-  // //_______________________________ Plan management_______________________________
+
+router.route('/user/send-waitlist-mail').post(catchErrors(adminController.sendWaitlistMail));
+
+// //_______________________________ Plan management_______________________________
 
 router.route('/plan-details').get(catchErrors(planController.getPlan));
 

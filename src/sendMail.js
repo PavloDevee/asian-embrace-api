@@ -1,4 +1,4 @@
-const { emailVerfication, passwordVerfication, mailSendEmailTemplate, joinWaitlistTemplate, welcomeTemplate, profileUnverifiedTemplate, profileVerifiedTemplate, emailAddressChangeTemplate, passwordChangeTemplate, welcomeTemplateFemale, verificationRequiredTemplate, loginReminderTemplate, accountDeactivateTemplate } = require('@/emailTemplate/emailVerfication');
+const { emailVerfication, passwordVerfication, mailSendEmailTemplate, joinWaitlistTemplate, welcomeTemplate, profileUnverifiedTemplate, profileVerifiedTemplate, emailAddressChangeTemplate, passwordChangeTemplate, welcomeTemplateFemale, verificationRequiredTemplate, loginReminderTemplate, accountDeactivateTemplate, accountFreeTrialExpiring, accountFreeTrialExpired, planPurchaseSuccessfully, planPurchaseCancel } = require('@/emailTemplate/emailVerfication');
 
 const brevo = require('@sendinblue/client');
 // const { createTransport } = require("nodemailer");
@@ -40,6 +40,14 @@ const sendMail = async ({ email, name, otp, subject, type, address, title, body,
       typeUI = loginReminderTemplate({ name, email });
     } else if (type === 'accountDeactivate') {
       typeUI = accountDeactivateTemplate({ name, email });
+    } else if (type === 'accountFreeTrialExpiring') {
+      typeUI = accountFreeTrialExpiring({ name, email });
+    } else if (type === 'accountFreeTrialExpired') {
+      typeUI = accountFreeTrialExpired({ name, email });
+    } else if (type === 'planPurchaseSuccessfully') {
+      typeUI = planPurchaseSuccessfully({ name, email });
+    } else if (type === 'planPurchaseCancel') {
+      typeUI = planPurchaseCancel({ name, email });
     }
 
     // const transporter = createTransport({
