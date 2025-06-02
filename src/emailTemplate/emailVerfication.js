@@ -1416,6 +1416,500 @@ exports.accountDeactivateTemplate = ({
   `;
 };
 
+exports.accountFreeTrialExpiring = ({
+   name = '',
+   email = '',
+}) => {
+   return `
+    <html>
+<head>
+   <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+      rel="stylesheet">
+</head>
+
+<body style="padding: 0;margin: 0;font-family: 'Poppins', sans-serif;background-color:#E3EDF6;">
+   <table width="100%" bgcolor="#E3EDF6" style="background-color:#E3EDF6" border="0" cellpadding="0" cellspacing="0"
+      role="presentation">
+      <tbody>
+         <tr>
+            <td style="padding: 30px 0;">
+               <table bgcolor="#fff" align="center" width="600" border="0" cellpadding="0" cellspacing="0"
+                  role="presentation"
+                  style="width:600px;background: #fff;background-image: url(https://stage.tasksplan.com:8888/public/email-template/dark_fade.png);background-repeat: no-repeat;border-radius: 20px; overflow: hidden;">
+                  <thead>
+                     <tr>
+                        <td style="padding: 30px;">
+                           <img alt="" src="https://stage.tasksplan.com:8888/public/email-template/logo-new.png"
+                              width="266" height="auto" border="0" hspace="0" vspace="0"
+                              style="display:block;vertical-align:top;margin: 0 auto;">
+                        </td>
+                     </tr>
+
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td
+                           style="color:#000;font-family: 'Poppins', sans-serif;text-align:center;font-size:24px;line-height:50px;padding:10px 35px;font-weight:500;">
+                           24 Hours left of your Free Trial!</td>
+                     </tr>
+                     <tr>
+                        <td
+                           style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">
+                           Hi ${name},</td>
+                     </tr>
+                     <tr>
+                        <td
+                           style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">
+                           Your free trial on Asian Embrace is coming to an end soon. To continue enjoying unlimited
+                           access to connect with genuine Asian women, please log in and add your payment details.</td>
+                     </tr>
+
+
+         </tr>
+
+         <tr>
+            <td style="padding: 13px;"></td>
+         </tr>
+
+         <tr>
+            <td style="font-size: 14px;padding: 20px 0;text-align: center;"><a href="https://stage.tasksplan.com:9090/login"
+                  style="background-color: #D52D3A;color: #FFFFFF;padding: 15px 70px;text-decoration: none;border-radius: 50px;">
+                  Log In and Add Your Card</a></td>
+         </tr>
+
+         <tr>
+            <td style="padding: 13px;"></td>
+         </tr>
+
+         <tr>
+            <td
+               style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">
+               By upgrading your membership, you’ll unlock all the features that help you find love, friendship, and
+               meaningful connections. Don’t let your journey stop here!.</td>
+         </tr>
+
+         <tr>
+            <td
+               style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">
+               If you need any help or have questions, just reply to this email. We’re here to support you every step of
+               the way.
+            </td>
+         </tr>
+
+         <tr>
+            <td
+               style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 0;font-weight:400;">
+               Warm regards,</td>
+         </tr>
+         <tr>
+            <td
+               style="color:#DC323F;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:500;">
+               The Asian Embrace Team</td>
+         </tr>
+         <tr>
+            <td style="padding: 13px;"></td>
+         </tr>
+      </tbody>
+      <tfoot>
+         <tr>
+            <td>
+               <table bgcolor="#fff" align="center" width="530" border="0" cellpadding="0" cellspacing="0"
+                  role="presentation" style="width:530px;background-color:#fff;">
+
+                  <tr style="width:530px;">
+                     <td
+                        style="border-top: 1px solid #F3F3F3;border-bottom: 0px solid #F3F3F3;padding: 25px 0 15px;text-align: center;">
+                        <img src="https://stage.tasksplan.com:8888/public/email-template/Social1.png" /> <img
+                           src="https://stage.tasksplan.com:8888/public/email-template/insta2.png" /> <img
+                           src="https://stage.tasksplan.com:8888/public/email-template/Social3.png" /> <img
+                           src="https://stage.tasksplan.com:8888/public/email-template/Social4.png" />
+                     </td>
+                  </tr>
+
+
+                  <tr>
+                     <td style="padding: 10px;"></td>
+                  </tr>
+                  <tr>
+
+                  </tr>
+               </table>
+            </td>
+         </tr>
+
+         <tr style="background-color: #FEF2F3;">
+            <td
+               style="padding: 16px 40px 0;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">
+               You're receiving this email because you are a subscriber of AsianEmbrace.com</td>
+
+         </tr>
+         <tr style="background-color: #FEF2F3; border-radius: 0 0 20px 20px;">
+            <td
+               style="padding: 0 40px 16px;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">
+               If you feel you received it by mistake or wish to unsubscribe, <a href=""
+                  style="color: black; font-weight: 600; text-decoration: none;">click here</a></td>
+
+         </tr>
+
+
+      </tfoot>
+   </table>
+   </td>
+   </tr>
+   </tbody>
+   </table>
+</body>
+</html>
+  `;
+};
+
+exports.accountFreeTrialExpired = ({
+   name = '',
+   email = '',
+}) => {
+   return `
+    <html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 0;margin: 0;font-family: 'Poppins', sans-serif;background-color:#E3EDF6;">
+   <table width="100%" bgcolor="#E3EDF6" style="background-color:#E3EDF6" border="0" cellpadding="0" cellspacing="0" role="presentation">
+      <tbody>
+         <tr>
+            <td style="padding: 30px 0;">
+               <table bgcolor="#fff" align="center" width="600" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:600px;background: #fff;background-image: url(https://stage.tasksplan.com:8888/public/email-template/dark_fade.png);background-repeat: no-repeat;border-radius: 20px; overflow: hidden;">
+                  <thead>
+                     <tr>
+                        <td style="padding: 30px;">
+                           <img alt="" src="https://stage.tasksplan.com:8888/public/email-template/logo-new.png" width="266" height="auto" border="0" hspace="0" vspace="0" style="display:block;vertical-align:top;margin: 0 auto;">
+                        </td>
+                     </tr> 
+                                      
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;text-align:center;font-size:24px;line-height:50px;padding:10px 35px;font-weight:500;">Your Free Trial Has Ended </td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Hi ${name},</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Your free trial on Asian Embrace has ended, but your journey doesn’t have to stop here! To continue connecting with genuine Asian women, simply log in and add your payment details.</td>
+                     </tr>
+
+                     
+                     </tr>
+                    
+                      <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr> 
+
+                     <tr>
+                                 <td style="font-size: 14px;padding: 20px 0;text-align: center;"><a href="https://stage.tasksplan.com:9090/discover" style="background-color: #D52D3A;color: #FFFFFF;padding: 15px 70px;text-decoration: none;border-radius: 50px;">  Log In and Upgrade Now</a></td>
+                              </tr>
+
+                      <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">By upgrading, you’ll unlock unlimited access to profiles, messages, and all the features that make finding love, friendship, and real connections easy.</td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">If you need any help or have questions, just reply to this email. We’re here to support you!
+                        </td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 0;font-weight:400;">Warm regards,</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#DC323F;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:500;">The Asian Embrace Team</td>
+                     </tr>
+<tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                        <td>
+                            <table bgcolor="#fff" align="center" width="530" border="0" cellpadding="0" cellspacing="0"
+                                role="presentation" style="width:530px;background-color:#fff;">
+        
+                                <tr style="width:530px;">
+                                    <td
+                                        style="border-top: 1px solid #F3F3F3;border-bottom: 0px solid #F3F3F3;padding: 25px 0 15px;text-align: center;">
+                                        <img src="https://stage.tasksplan.com:8888/public/email-template/Social1.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/insta2.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/Social3.png" /> <img
+                                            src="https://stage.tasksplan.com:8888/public/email-template/Social4.png" />
+                                    </td>
+                                </tr>
+                                
+        
+                                <tr>
+                                    <td style="padding: 10px;"></td>
+                                </tr>
+                                <tr>
+                       
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                 
+        <tr style="background-color: #FEF2F3;">
+                        <td style="padding: 16px 40px 0;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">You're receiving this email because you are a subscriber of AsianEmbrace.com</td>
+                    
+                    </tr>
+                    <tr style="background-color: #FEF2F3; border-radius: 0 0 20px 20px;">
+                        <td style="padding: 0 40px 16px;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">If you feel you received it by mistake or wish to unsubscribe, <a href="" style="color: black; font-weight: 600; text-decoration: none;">click here</a></td>
+                    
+                    </tr>
+         
+                   
+                </tfoot>
+               </table>
+            </td>
+         </tr>
+      </tbody>
+   </table>
+</body>
+</html>
+  `;
+};
+
+exports.planPurchaseSuccessfully = ({
+   name = '',
+   email = '',
+}) => {
+   return `
+    <html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 0;margin: 0;font-family: 'Poppins', sans-serif;background-color:#E3EDF6;">
+   <table width="100%" bgcolor="#E3EDF6" style="background-color:#E3EDF6" border="0" cellpadding="0" cellspacing="0" role="presentation">
+      <tbody>
+         <tr>
+            <td style="padding: 30px 0;">
+               <table bgcolor="#fff" align="center" width="600" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:600px;background: #fff;background-image: url(https://stage.tasksplan.com:8888/public/email-template/dark_fade.png);background-repeat: no-repeat;border-radius: 20px;">
+                  <thead>
+                     <tr>
+                        <td style="padding: 30px;">
+                           <img alt="" src="https://stage.tasksplan.com:8888/public/email-template/logo-new.png" width="266" height="auto" border="0" hspace="0" vspace="0" style="display:block;vertical-align:top;margin: 0 auto;">
+                        </td>
+                     </tr> 
+                     <tr>
+                        <td style="padding: 0 30px 30px;">
+                           <img alt="" src="https://stage.tasksplan.com:8888/public/email-template/img1.png" width="100%" height="auto" border="0" hspace="0" vspace="0" style="display:block;vertical-align:top;margin: 0 auto;">
+                        </td>
+                     </tr>                    
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:24px;line-height:50px;padding:5px 35px;font-weight:500;">Hi ${name},</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Thank you for upgrading your membership on Asian Embrace! We're excited to have you as a valued member, and we can't wait to help you find genuine connections, love, and friendship.</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Now that you're a full member, you’ll enjoy:</td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 3px;font-weight:400;">✅ Unlimited access to profiles, messages and communication</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 3px;font-weight:400;">✅ Priority support whenever you need it</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 3px;font-weight:400;">✅ Exclusive features to help you make meaningful connections</td>
+                     </tr>
+                     <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+                     
+                      <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr> 
+
+                     <tr>
+                                 <td style="font-size: 14px;padding: 20px 0;text-align: center;"><a href="https://stage.tasksplan.com:9090/discover" style="background-color: #D52D3A;color: #FFFFFF;padding: 15px 70px;text-decoration: none;border-radius: 50px;">Start Connecting Now</a></td>
+                              </tr>
+
+                      <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">If you have any questions or need support, just reply to this email. We’re here for you every step of the way.</td>
+                     </tr>
+ 
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 0;font-weight:400;">Warm regards,</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#DC323F;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:500;">The Asian Embrace Team</td>
+                     </tr>
+<tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+                  </tbody>
+                  <tfoot>
+                     <tr>
+                        <td>
+                           <table bgcolor="#fff" align="center" width="530" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:530px;background-color:#fff;">
+
+                              <tr>
+                                 <td style="border-top: 1px solid #F3F3F3;border-bottom: 1px solid #F3F3F3;padding: 25px 0 15px;text-align: center;">
+                                    <img src="https://stage.tasksplan.com:8888/public/email-template/Social1.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/insta2.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/Social3.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/Social4.png" />
+                                 </td>
+                              </tr>   
+                              <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+                              <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:11px;line-height:24px;padding:0px 35px 15px;font-weight:400;text-align: center;">© 2025 Asian Embrace. All rights reserved.</td>
+                     </tr>          
+                      <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:12px;line-height:24px;padding:0px 35px 15px;font-weight:400;text-align: center;">You're receiving this email because you are a subscriber of AsianEmbrace.com If you feel you received it by mistake or wish to unsubscribe, click here</td>
+                     </tr>       
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:10px;line-height:24px;padding:0px 35px 15px;font-weight:400;text-align: center;">
+                           <a href="#" style="color: #333;margin-right: 10px;">Privacy policy</a> <a href="#" style="color: #333;margin-right: 10px;">Terms of service</a> <a href="#" style="color: #333;margin-right: 10px;">Help center</a> <a href="#" style="color: #333;">Unsubscribe</a>
+                        </td>
+                     </tr>   
+                     <tr>
+                        <td style="padding: 5px 13px;"></td>
+                     </tr>                        
+                           </table>
+                        </td>
+                     </tr>
+                  </tfoot>
+               </table>
+            </td>
+         </tr>
+      </tbody>
+   </table>
+</body>
+</html>
+  `;
+};
+
+exports.planPurchaseCancel = ({
+   name = '',
+   email = '',
+}) => {
+   return `
+   <html>
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body style="padding: 0;margin: 0;font-family: 'Poppins', sans-serif;background-color:#E3EDF6;">
+   <table width="100%" bgcolor="#E3EDF6" style="background-color:#E3EDF6" border="0" cellpadding="0" cellspacing="0" role="presentation">
+      <tbody>
+         <tr>
+            <td style="padding: 30px 0;">
+               <table bgcolor="#fff" align="center" width="600" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:600px;background: #fff;background-image: url(https://stage.tasksplan.com:8888/public/email-template/dark_fade.png);background-repeat: no-repeat;border-radius: 20px; overflow: hidden;">
+                  <thead>
+                     <tr>
+                        <td style="padding: 30px;">
+                           <img alt="" src="https://stage.tasksplan.com:8888/public/email-template/logo-new.png" width="266" height="auto" border="0" hspace="0" vspace="0" style="display:block;vertical-align:top;margin: 0 auto;">
+                        </td>
+                     </tr> 
+                                      
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;text-align:center;font-size:24px;line-height:50px;padding:20px 35px 10px;font-weight:500;">Your Subscription Has Been Cancelled </td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Hi ${name},</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Sorry to see you go! Your subscription to Asian Embrace has been successfully cancelled. You’ll continue to have access to your account until the end of your current billing period.
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">If there’s anything we could have done better or if you need help with your account, please let us know by replying to this email. Your feedback is always valued.
+
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Should you decide to return, your profile and connections will be waiting for you.
+                        </td>
+                     </tr>
+                     
+                     </tr>
+                    
+          
+
+                      <tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:400;">Thank you for being a valued member of our community.</td>
+                     </tr>
+
+                     
+
+                     <tr>
+                        <td style="color:#000;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 0;font-weight:400;">Warm regards,</td>
+                     </tr>
+                     <tr>
+                        <td style="color:#DC323F;font-family: 'Poppins', sans-serif;font-size:14px;line-height:24px;padding:0px 35px 15px;font-weight:500;">The Asian Embrace Team</td>
+                     </tr>
+<tr>
+                        <td style="padding: 13px;"></td>
+                     </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                        <td>
+                            <table bgcolor="#fff" align="center" width="530" border="0" cellpadding="0" cellspacing="0"
+                                role="presentation" style="width:530px;background-color:#fff;">
+        
+                                <tr style="width:530px;">
+                                    <td
+                                        style="border-top: 1px solid #F3F3F3;border-bottom: 0px solid #F3F3F3;padding: 25px 0 15px;text-align: center;">
+                                        <img src="https://stage.tasksplan.com:8888/public/email-template/Social1.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/insta2.png" /> <img src="https://stage.tasksplan.com:8888/public/email-template/Social3.png" /> <img
+                                            src="https://stage.tasksplan.com:8888/public/email-template/Social4.png" />
+                                    </td>
+                                </tr>
+                                
+        
+                                <tr>
+                                    <td style="padding: 10px;"></td>
+                                </tr>
+                                <tr>
+                       
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                 
+        <tr style="background-color: #FEF2F3;">
+                        <td style="padding: 16px 40px 0;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">You're receiving this email because you are a subscriber of AsianEmbrace.com</td>
+                    
+                    </tr>
+                    <tr style="background-color: #FEF2F3; border-radius: 0 0 20px 20px;">
+                        <td style="padding: 0 40px 16px;color: #000; font-family: 'Poppins', sans-serif; font-size: 13.2px; line-height: 24px;">If you feel you received it by mistake or wish to unsubscribe, <a href="" style="color: black; font-weight: 600; text-decoration: none;">click here</a></td>
+                    
+                    </tr>
+         
+                   
+                </tfoot>
+               </table>
+            </td>
+         </tr>
+      </tbody>
+   </table>
+</body>
+</html>
+  `;
+};
+
 
 
 

@@ -36,11 +36,31 @@ const paginatedList = async (Model, req, res) => {
     const currentYear = new Date().getFullYear();
 
     // Calculate date range based on provided age range
-    const minDOB = endAge ? new Date(currentYear - parseInt(endAge), 0, 1) : null;  // Oldest person
-    const maxDOB = startAge ? new Date(currentYear - parseInt(startAge), 11, 31) : null; // Youngest person
+    const today = new Date();
+    const maxDOB = startAge ? new Date(today.getFullYear() - startAge, today.getMonth(), today.getDate()) : null;
+    const minDOB = endAge ? new Date(today.getFullYear() - endAge - 1, today.getMonth(), today.getDate() + 1) : null;
 
-    const blockUsers = await Block.find({ user: req.user._id, removed: false });
-    const blockedUserIds = blockUsers.map(b => b.blockedUser.toString()); // Convert to strings for consistency
+    // const blockUsers = await Block.find({ user: req.user._id, removed: false });
+    // const blockedUserIds = blockUsers.map(b => b.blockedUser.toString()); // Convert to strings for consistency
+
+    const blockUsers = await Block.find({
+      $or: [
+        { user: req.user._id, removed: false },
+        { blockedUser: req.user._id, removed: false }
+      ]
+    });
+
+    // Collect all user IDs to exclude
+    const blockedUserIds = blockUsers.map(b => {
+      // If current user blocked someone, exclude `blockedUser`
+      if (b.user.toString() === req.user._id.toString()) {
+        return b.blockedUser.toString();
+      } else {
+        // If someone blocked the current user, exclude `user`
+        return b.user.toString();
+      }
+    });
+
 
 
     const reportUsers = await Report.find({ actionBy: req.user._id, removed: false });
@@ -76,18 +96,31 @@ const paginatedList = async (Model, req, res) => {
     };
 
     // Fetch results with filtering inside `favouriteUser`
-    const resultsPromise = Model.find({
-      ...query
-    })
-      .skip(skip)
-      .limit(limit)
-      .sort({ [sortBy]: sortValue })
-      .populate({
-        path: 'favouriteUser',
-        match: favouriteUserFilter, // Apply filtering inside favouriteUser
-      })
-      .exec()
-      .then(results => results.filter(result => result.favouriteUser !== null)); // Filter out null favouriteUser
+    const resultsPromise = Model.aggregate([
+      {
+        $match: {
+          removed: false,
+          user: new ObjectId(userId),
+          favouriteUser: { $nin: excludedUserIds.map(id => new mongoose.Types.ObjectId(id)) }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'favouriteUser',
+          foreignField: '_id',
+          as: 'favouriteUser',
+          pipeline: [
+            { $match: favouriteUserFilter }
+          ]
+        }
+      },
+      { $unwind: "$favouriteUser" }, // Important: unwind kar ke null hata do
+      { $skip: skip },
+      { $limit: limit },
+      { $sort: { [sortBy]: sortValue } }
+    ]);
+    
 
     // Count query
     const countPromise = Model.aggregate([
