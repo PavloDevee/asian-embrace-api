@@ -37,15 +37,35 @@ chatController.getSocketIdByUserId = async (req) => {
 }
 
 chatController.getToken = async (req, res) => {
-    const appId = 386820498; // Replace with your App ID
-    const secret = "977c3c122c7ec6dff6bbfe5d397322a1"; // Replace with your Server Secret
+    // const appId = 386820498; // Replace with your App ID
+    // const secret = "977c3c122c7ec6dff6bbfe5d397322a1"; // Replace with your Server Secret
+    const appId = parseInt(process.env.ZEGO_APP_ID, 10); // Load from environment variable
+    const secret = process.env.ZEGO_SERVER_SECRET; // Load from environment variable
+    console.log("appId", appId);
+    console.log("secret", secret);
+    if (!appId || !secret) {
+        console.error('Zego AppID or Server Secret is not configured in environment variables.');
+        return res.status(500).json({ success: false, error: 'Server configuration error.' });
+    }
+
     const effectiveTimeInSeconds = 36000;
     try {
-        const { userId, payload } = req.body;
-        const token = generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload);
+        const { userId } = req.body; // payload is optional, default handled in generateToken04
+        // The generateToken04 function expects userId as a string.
+        // Ensure it is, or convert it if necessary, depending on how it's stored/sent.
+        if (typeof userId !== 'string') {
+            // console.warn('userId received for token generation is not a string, attempting conversion.');
+            // userId = String(userId); // Uncomment if conversion is acceptable and needed
+        }
+        const token = generateToken04(appId, userId, secret, effectiveTimeInSeconds, ''); // Pass empty string for payload if not provided
         res.json({ success: true, token });
     } catch (error) {
-        res.status(400).json({ success: false, error });
+        console.error('Error generating Zego token:', error);
+        // Check if error has a specific structure from generateToken04
+        if (error && error.errorCode) {
+            return res.status(400).json({ success: false, error: error.errorMessage, errorCode: error.errorCode });
+        }
+        res.status(400).json({ success: false, error: error.message || 'Failed to generate token' });
     }
 }
 

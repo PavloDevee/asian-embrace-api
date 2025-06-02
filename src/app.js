@@ -43,9 +43,14 @@ app.use(compression())
 
 // Express session middleware
 app.use(session({
-  secret: 'your_secret_key',
+  secret: process.env.SESSION_SECRET || 'fallback_secret_for_dev_only',
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    // sameSite: 'lax' // Consider adding sameSite attribute
+  }
 }));
 
 // Here our API Routes

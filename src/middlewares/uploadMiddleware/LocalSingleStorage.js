@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { slugify } = require('transliteration');
 
 const fileFilter = require('./utils/LocalfileFilter');
@@ -12,7 +13,23 @@ const singleStorageUpload = ({
 }) => {
   var diskStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, `src/public/uploads/${entity}`);
+      console.log(`[    ] Destination function called. Entity: ${entity}, File: ${file.originalname}`);
+      const dir = `src/public/uploads/${entity}`;
+      console.log(`[LocalSingleStorage] Target directory: ${dir}`);
+      try {
+        if (!fs.existsSync(dir)) {
+          console.log(`[LocalSingleStorage] Directory ${dir} does not exist. Attempting to create.`);
+          fs.mkdirSync(dir, { recursive: true });
+          console.log(`[LocalSingleStorage] Successfully created directory: ${dir}`);
+        } else {
+          console.log(`[LocalSingleStorage] Directory ${dir} already exists.`);
+        }
+        cb(null, dir);
+      } catch (err) {
+        console.error(`[LocalSingleStorage] Error creating directory ${dir}. Error:`, err);
+        console.error(`[LocalSingleStorage] Error stack:`, err.stack);
+        cb(err); // Pass the error to multer
+      }
     },
     filename: function (req, file, cb) {
       try {
@@ -44,6 +61,7 @@ const singleStorageUpload = ({
 
         cb(null, _fileName);
       } catch (error) {
+        console.error('[LocalSingleStorage] Error in filename function:', error); // Added logging for filename errors
         cb(error); // pass the error to the callback
       }
     },
@@ -51,7 +69,7 @@ const singleStorageUpload = ({
 
   let filterType = fileFilter(fileType);
 
-  const multerStorage = multer({ storage: diskStorage, fileFilter: filterType }).single('file');
+  const multerStorage = multer({ storage: diskStorage, fileFilter: filterType }).single(uploadFieldName); // Use uploadFieldName here
   return multerStorage;
 };
 
