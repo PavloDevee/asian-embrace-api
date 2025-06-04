@@ -1,6 +1,7 @@
 {
   "name": "asian-embrace-backend",
   "version": "4.0.0-beta.3",
+  
   "engines": {
     "npm": "10.2.4",
     "node": "20.9.0"
@@ -43,7 +44,8 @@
     "shortid": "^2.2.16",
     "socket.io": "^4.8.1",
     "stripe": "^15.9.0",
-    "transliteration": "^2.3.5"
+    "transliteration": "^2.3.5",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
