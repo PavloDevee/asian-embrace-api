@@ -1,4 +1,5 @@
 const { sendResponse } = require('@/helpers');
+const sendMail = require('@/sendMail');
 // const schema = require('./schemaValidate');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
@@ -32,9 +33,17 @@ const create = async (Model, req, res) => {
   }
 
   // Create a new report
-  await new Model({userId: req.body.userId}).save();
+  await new Model({ userId: req.body.userId }).save();
   // Update the user collection to set isPlanPurchase: true
-  await User.findByIdAndUpdate(req.body.userId, { isPlanPurchase: true });
+  const user = await User.findByIdAndUpdate(req.body.userId, { isPlanPurchase: true });
+
+  await sendMail({
+    email: user.email,
+    name: user.name,
+    subject: 'Welcome to Asian Embrace Membership!',
+    type: 'planPurchaseSuccessfully',
+  });
+
   return sendResponse(res, 200, true, null, 'Plan purchase successfully');
 };
 

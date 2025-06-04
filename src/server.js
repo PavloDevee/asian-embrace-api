@@ -44,16 +44,20 @@ app.set('port', process.env.PORT || 8888);
 let server;
 
 if (process.env.IS_SSL == "true") {
-  let privateKey, certificate;
-  privateKey = fs.readFileSync("/home/ssl/privkey.pem", "utf8");
-  certificate = fs.readFileSync("/home/ssl/fullchain.pem", "utf8");
-
-  const options = {
-    key: privateKey,
-    cert: certificate,
-  };
-
-  server = https.createServer(options, app);
+  const privKeyPath = "/home/ssl/privkey.pem";
+  const certPath = "/home/ssl/fullchain.pem";
+  if (fs.existsSync(privKeyPath) && fs.existsSync(certPath)) {
+    const privateKey = fs.readFileSync(privKeyPath, "utf8");
+    const certificate = fs.readFileSync(certPath, "utf8");
+    const options = {
+      key: privateKey,
+      cert: certificate,
+    };
+    server = https.createServer(options, app);
+  } else {
+    console.warn("SSL files not found, falling back to HTTP server.");
+    server = http.createServer(app);
+  }
 } else {
   server = http.createServer(app);
 }
@@ -120,13 +124,36 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', async () => {
+    let disconnectedUserId = null;
+    // Find the user associated with this socket.id to remove from the in-memory store
+    for (const userId in users) {
+      if (users[userId] === socket.id) {
+        disconnectedUserId = userId;
+        delete users[userId];
+        console.log(`User ${userId} with socket ${socket.id} removed from in-memory store.`);
+        break;
+      }
+    }
+
     const req = {
       socket_id: socket.id,
-      is_online: 0
+      is_online: 0,
+      // If disconnectedUserId was found, we could pass it to chatController
+      // if it needs the sender_id for more specific offline logic, but
+      // onlineOrOffline seems to correctly use socket_id to find the user.
+      // sender_id: disconnectedUserId 
     }
-    const result = await chatController.onlineOrOffline(req);
-    console.log('offline');
-    io.to(socket.id).emit('onlineResponse', result)
+    // Update user status in the database
+    await chatController.onlineOrOffline(req);
+    console.log(`Socket ${socket.id} disconnected. User (if mapped) marked offline.`);
+    
+    // Emitting to socket.id after disconnect is generally not useful.
+    // If you need to notify other users about this user going offline,
+    // you would typically broadcast or emit to specific rooms/users.
+    // For example, if disconnectedUserId is known:
+    // if (disconnectedUserId) {
+    //   socket.broadcast.emit('userOffline', { userId: disconnectedUserId });
+    // }
   });
 });
 

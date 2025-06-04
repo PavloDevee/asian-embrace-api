@@ -72,7 +72,7 @@ const login = async (req, res, { userModel }) => {
   //   });
 
   if (!user.enabled)
-    return sendResponse(res, 403, false, null, 'Your account is disabled, contact your account adminstrator.');
+    return sendResponse(res, 403, false, null, 'Account deactivated. Contact support for help.');
 
   //  authUser if your has correct password
   authUser(req, res, { user, databasePassword, password, UserModel, UserPasswordModel, type });

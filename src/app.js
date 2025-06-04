@@ -11,6 +11,7 @@ const adminAuth = require('./controllers/coreControllers/adminAuth');
 const errorHandlers = require('./handlers/errorHandlers');
 const erpApiRouter = require('./routes/appRoutes/appApi');
 const erpApiWithTokenRouter = require('./routes/appRoutes/appApiWithToken');
+const imageStorageRouter = require('./routes/imageStorageRoutes');
 const startCronJob = require('./cron/reminderCron'); // adjust path
 const loginStartCronJob = require('./cron/loginReminderCron'); // adjust path
 
@@ -43,17 +44,29 @@ app.use(compression())
 
 // Express session middleware
 app.use(session({
-  secret: 'your_secret_key',
+  secret: process.env.SESSION_SECRET || 'fallback_secret_for_dev_only',
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    // sameSite: 'lax' // Consider adding sameSite attribute
+  }
 }));
 
 // Here our API Routes
 app.use('/api', coreAuthRouter);
 app.use('/api', coreApiRouter);
-// Common
+
+// Define more specific routes like /api/storage BEFORE general /api with broad middleware
+app.use('/api/storage', imageStorageRouter.default);
+
+// Common routes - erpApiRouter might be public or have its own auth
 app.use('/api', erpApiRouter);
+
+// Routes protected by adminAuth.isValidAuthToken
 app.use('/api', adminAuth.isValidAuthToken, erpApiWithTokenRouter);
+
 app.use("/public", express.static(path.join(__dirname, 'public')));
 startCronJob();
 loginStartCronJob();

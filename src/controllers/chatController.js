@@ -1,7 +1,11 @@
 const User = require('../models/coreModels/User');
+const ChatAttachment = require('../models/appModels/ChatAttachment');
 var mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const { sendResponse } = require('@/helpers');
 
 const chatController = {};
 
@@ -37,15 +41,35 @@ chatController.getSocketIdByUserId = async (req) => {
 }
 
 chatController.getToken = async (req, res) => {
-    const appId = 386820498; // Replace with your App ID
-    const secret = "977c3c122c7ec6dff6bbfe5d397322a1"; // Replace with your Server Secret
+    // const appId = 386820498; // Replace with your App ID
+    // const secret = "977c3c122c7ec6dff6bbfe5d397322a1"; // Replace with your Server Secret
+    const appId = parseInt(process.env.ZEGO_APP_ID, 10); // Load from environment variable
+    const secret = process.env.ZEGO_SERVER_SECRET; // Load from environment variable
+    console.log("appId", appId);
+    console.log("secret", secret);
+    if (!appId || !secret) {
+        console.error('Zego AppID or Server Secret is not configured in environment variables.');
+        return res.status(500).json({ success: false, error: 'Server configuration error.' });
+    }
+
     const effectiveTimeInSeconds = 36000;
     try {
-        const { userId, payload } = req.body;
-        const token = generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload);
+        const { userId } = req.body; // payload is optional, default handled in generateToken04
+        // The generateToken04 function expects userId as a string.
+        // Ensure it is, or convert it if necessary, depending on how it's stored/sent.
+        if (typeof userId !== 'string') {
+            // console.warn('userId received for token generation is not a string, attempting conversion.');
+            // userId = String(userId); // Uncomment if conversion is acceptable and needed
+        }
+        const token = generateToken04(appId, userId, secret, effectiveTimeInSeconds, ''); // Pass empty string for payload if not provided
         res.json({ success: true, token });
     } catch (error) {
-        res.status(400).json({ success: false, error });
+        console.error('Error generating Zego token:', error);
+        // Check if error has a specific structure from generateToken04
+        if (error && error.errorCode) {
+            return res.status(400).json({ success: false, error: error.errorMessage, errorCode: error.errorCode });
+        }
+        res.status(400).json({ success: false, error: error.message || 'Failed to generate token' });
     }
 }
 
@@ -105,7 +129,7 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload 
 
     const iv = makeRandomIv();
     const encryptBuf = aesEncrypt(JSON.stringify(tokenInfo), secret, iv);
-    
+
     const b1 = new Uint8Array(8);
     new DataView(b1.buffer).setBigInt64(0, BigInt(tokenInfo.expire), false);
 
@@ -122,6 +146,17 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload 
 chatController.upload = async (req, res) => {
     try {
         if (req.body.photo) {
+
+            const data = {
+                attechment: req.body.photo,
+                sender_id: req.user._id,
+                receiver_id: req.body.receiver_id,
+                attechment_type: req.body.type
+            }
+
+            // Create a new rose
+            await new ChatAttachment(data).save();
+
             return res.status(200).json({
                 success: true,
                 data: req.body.photo,
@@ -134,12 +169,101 @@ chatController.upload = async (req, res) => {
             });
         }
     } catch (error) {
+        console.log("error", error);
+
         return res.status(200).json({
             success: false,
             message: 'something went wrong',
         });
     }
 }
+
+chatController.getAttachment = async (req, res) => {
+    try {
+        const currentUserId = req.user._id;
+        const otherUserId = req.params.recipientId;
+
+        if (!otherUserId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Other user ID is required',
+            });
+        }
+
+        const filter = {
+            $or: [
+                { sender_id: currentUserId, receiver_id: otherUserId },
+                { sender_id: otherUserId, receiver_id: currentUserId }
+            ]
+        };
+
+        const imageAttachments = await ChatAttachment.find({
+            ...filter,
+            attechment_type: 'image'
+        }).sort({ createdAt: -1 });
+
+        const videoAttachments = await ChatAttachment.find({
+            ...filter,
+            attechment_type: 'video'
+        }).sort({ createdAt: -1 });
+
+        const result = {
+            images: imageAttachments,
+            videos: videoAttachments,
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Attachment lists',
+            result
+        });
+
+    } catch (error) {
+        console.error("getAttachment error:", error);
+        return res.status(500).json({
+            success: false,
+            message: 'Something went wrong',
+        });
+    }
+};
+
+chatController.delete = async (req, res) => {
+    try {
+        const currentUserId = req.user._id;
+        const otherUserId = req.body.recipientId;
+        const attachmentUrl = req.body.attachment;
+
+        // Extract relative file path from full URL
+        const attachmentPath = new URL(attachmentUrl).pathname.replace(/^\/+/, ''); // e.g., public/uploads/chatAttachment/xxx.jpg
+        console.log("attachmentPath", attachmentPath);
+        
+        // Create a filter to match document by users and attachment path
+        const filter = {
+            $or: [
+                { sender_id: currentUserId, receiver_id: otherUserId },
+                { sender_id: otherUserId, receiver_id: currentUserId }
+            ],
+            attechment: attachmentPath
+        };
+
+        const result = await ChatAttachment.findOneAndDelete(filter);
+
+        if (!result) {
+            return sendResponse(res, 404, false, null, 'No document found');
+        }
+
+        // Optional: Delete physical file from server
+        const fullPath = path.join(__dirname, '..', attachmentPath);
+        fs.unlink(fullPath, (err) => {
+            if (err) console.error('Error deleting file:', err);
+        });
+
+        return sendResponse(res, 200, true, result, 'Successfully deleted the document');
+    } catch (error) {
+        console.error('Delete error:', error);
+        return sendResponse(res, 500, false, null, 'Something went wrong');
+    }
+};
 
 
 module.exports = chatController;

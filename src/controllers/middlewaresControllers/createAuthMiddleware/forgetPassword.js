@@ -27,7 +27,7 @@ const forgetPassword = async (req, res, { userModel }) => {
     return sendResponse(res, 404, false, null, 'No account with this email has been registered.');
 
   if (!user.enabled)
-    return sendResponse(res, 403, false, null, 'Your account is disabled, contact your account adminstrator.');
+    return sendResponse(res, 403, false, null, 'Account deactivated. Contact support for help.');
 
 
   // Check if the reset token was sent in the last 5 minutes
