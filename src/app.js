@@ -11,7 +11,6 @@ const adminAuth = require('./controllers/coreControllers/adminAuth');
 const errorHandlers = require('./handlers/errorHandlers');
 const erpApiRouter = require('./routes/appRoutes/appApi');
 const erpApiWithTokenRouter = require('./routes/appRoutes/appApiWithToken');
-const imageStorageRouter = require('./routes/imageStorageRoutes');
 const startCronJob = require('./cron/reminderCron'); // adjust path
 const loginStartCronJob = require('./cron/loginReminderCron'); // adjust path
 
@@ -57,9 +56,6 @@ app.use(session({
 // Here our API Routes
 app.use('/api', coreAuthRouter);
 app.use('/api', coreApiRouter);
-
-// Define more specific routes like /api/storage BEFORE general /api with broad middleware
-app.use('/api/storage', imageStorageRouter.default);
 
 // Common routes - erpApiRouter might be public or have its own auth
 app.use('/api', erpApiRouter);

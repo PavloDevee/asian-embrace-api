@@ -1,6 +1,7 @@
 const express = require('express');
 const { catchErrors } = require('@/handlers/errorHandlers');
 const router = express.Router();
+const multer = require('multer');
 const adminController = require('@/controllers/coreControllers/adminController');
 const contactUsController = require('@/controllers/appControllers/contactUsController');
 const pageContentController = require('@/controllers/appControllers/pageContentController');
@@ -17,6 +18,24 @@ const interestController = require('@/controllers/appControllers/interestControl
 const userSubscriptionController = require('@/controllers/appControllers/userSubscriptionController');
 const planController = require('@/controllers/appControllers/planController');
 const chatController = require('@/controllers/chatController');
+const { handleImageUpload } = require('@/controllers/imageStorageController');
+
+// Image Storage Configuration
+const storage = multer.memoryStorage();
+const imageFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Not an image! Please upload only images.'), false);
+  }
+};
+const upload = multer({
+  storage: storage,
+  fileFilter: imageFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10 MB limit for uploads
+  }
+});
 
 // //_______________________________ User management_______________________________
 
@@ -153,5 +172,26 @@ router.route('/plan-details').get(catchErrors(planController.getPlan));
 
 router.route('/admin/dashboard').get(adminAuth.isValidAuthToken, catchErrors(adminController.dashbaordData));
 router.route('/admin/sidebar').get(adminAuth.isValidAuthToken, catchErrors(adminController.adminSidebarData));
+
+// //_______________________________ Image Storage Routes _______________________________
+
+router.post('/storage/upload', upload.single('imageFile'), catchErrors(handleImageUpload));
+
+// Middleware to handle multer errors specifically
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ success: false, message: 'File is too large. Maximum size is 10MB.' });
+    }
+    return res.status(400).json({ success: false, message: `File upload error: ${error.message}` });
+  } else if (error) {
+    if (error.message === 'Not an image! Please upload only images.') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Unhandled error in image storage route:', error);
+    return res.status(500).json({ success: false, message: 'An unexpected error occurred.' });
+  }
+  next();
+});
 
 module.exports = router;

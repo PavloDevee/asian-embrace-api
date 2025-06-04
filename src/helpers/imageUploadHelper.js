@@ -1,6 +1,6 @@
-import { supabase } from '../setup/supabase.js'
-import { v4 as uuidv4 } from 'uuid'
-import sharp from 'sharp'
+const { supabase } = require('../setup/supabase')
+const { v4: uuidv4 } = require('uuid')
+const sharp = require('sharp')
 
 const BUCKET_NAME = process.env.SUPABASE_BUCKET_NAME
 
@@ -69,4 +69,4 @@ async function uploadImageToSupabase (file) {
   }
 }
 
-export { uploadImageToSupabase } 
+module.exports = { uploadImageToSupabase } 

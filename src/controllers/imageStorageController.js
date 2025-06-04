@@ -1,4 +1,4 @@
-import { uploadImageToSupabase } from '../helpers/imageUploadHelper.js'
+const { uploadImageToSupabase } = require('../helpers/imageUploadHelper')
 
 async function handleImageUpload (req, res) {
   try {
@@ -31,6 +31,6 @@ async function handleImageUpload (req, res) {
   }
 }
 
-export {
+module.exports = {
   handleImageUpload
 } 

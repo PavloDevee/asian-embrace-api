@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
@@ -17,4 +17,4 @@ if (!supabase && supabaseUrl && supabaseAnonKey) {
   console.error('Failed to initialize Supabase client. Check URL and Key.')
 }
 
-export { supabase } 
+module.exports = { supabase } 
