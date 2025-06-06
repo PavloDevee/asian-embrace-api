@@ -44,8 +44,19 @@ const userSchema = new Schema({
 	},
 	headLine: String,
 	describesAnimalType: String,
-	height: String,
-	weight: String,
+	height: {
+		type: Schema.Types.Mixed, // Support both String (legacy) and Object (new format)
+		default: null
+	},
+	weight: {
+		type: Schema.Types.Mixed, // Support both String (legacy) and Object (new format)
+		default: null
+	},
+	preferredUnits: {
+		type: String,
+		enum: ['metric', 'imperial'],
+		default: 'metric'
+	},
 	introduction: String,
 	interests: [String],
 	relationshipStatus: String,

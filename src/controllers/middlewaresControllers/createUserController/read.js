@@ -1,4 +1,5 @@
 const { sendResponse, notification } = require('@/helpers');
+const { formatUserDataForResponse } = require('@/helpers/unitConversions');
 const mongoose = require('mongoose');
 
 const read = async (userModel, req, res) => {
@@ -43,7 +44,15 @@ const read = async (userModel, req, res) => {
   if (!tmpResult) {
     return sendResponse(res, 404, false, null, "No document found");
   } else {
-    return sendResponse(res, 200, true, { ...tmpResult.toObject(), isFavourite }, "We found this document");
+    // Get the viewer's (logged-in user's) preferred units
+    const viewer = await User.findById(req.user._id).select('preferredUnits').exec();
+    const viewerPreferredUnits = viewer?.preferredUnits || 'metric';
+    
+    // Format the response data using viewer's preferred units
+    const userData = tmpResult.toObject();
+    const formattedData = formatUserDataForResponse(userData, viewerPreferredUnits);
+    
+    return sendResponse(res, 200, true, { ...formattedData, isFavourite }, "We found this document");
   }
 };
 

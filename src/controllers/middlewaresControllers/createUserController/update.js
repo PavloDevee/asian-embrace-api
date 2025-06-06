@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const schemaSection1 = require('./schemaValidateSection1');
 const { sendResponse } = require('@/helpers');
+const { normalizeWeight, normalizeHeight, formatUserDataForResponse } = require('@/helpers/unitConversions');
 
 const update = async (userModel, req, res) => {
   const User = mongoose.model(userModel);
@@ -52,14 +53,19 @@ const update = async (userModel, req, res) => {
       interests: body.interests
     }
   } else if (body.section == '5') {
+    // Get user's current preferred units if available, otherwise keep existing
+    const currentUser = await User.findById(req.user._id).exec();
+    const preferredUnits = body.preferredUnits || currentUser?.preferredUnits || 'metric';
+    
     updates = {
-      weight: body.weight,
-      height: body.height,
+      weight: body.weight ? normalizeWeight(body.weight, preferredUnits) : currentUser?.weight,
+      height: body.height ? normalizeHeight(body.height, preferredUnits) : currentUser?.height,
       relationshipStatus: body.relationshipStatus,
       religion: body.religion,
       children: body.children,
       languages: body.languages,
-      lookingFor: body.lookingFor
+      lookingFor: body.lookingFor,
+      preferredUnits
     }
   }
 
@@ -83,9 +89,15 @@ const update = async (userModel, req, res) => {
     name: result.name,
     photo: result.photo,
     role: result.role,
+    weight: result.weight,
+    height: result.height,
+    preferredUnits: result.preferredUnits
   }
 
-  return sendResponse(res, 200, true, resultData, "we update this document");
+  // Format the result data for response
+  const formattedResult = formatUserDataForResponse(resultData);
+
+  return sendResponse(res, 200, true, formattedResult, "we update this document");
 };
 
 module.exports = update;
