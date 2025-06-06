@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { generate: uniqueId } = require('shortid');
 const { sendResponse } = require('@/helpers');
+const { normalizeWeight, normalizeHeight, getPreferredUnitSystem, formatUserDataForResponse } = require('@/helpers/unitConversions');
 // const schema = require('./schemaValidateUpdate');
 
 const completeProfile = async (userModel, req, res) => {
@@ -29,9 +30,13 @@ const completeProfile = async (userModel, req, res) => {
       describesAnimalType: body.describesAnimalType
     }
   } else if (body.step === 4) {
+    // Set preferred units based on country if not already set
+    const preferredUnits = body.preferredUnits || getPreferredUnitSystem(body.country || 'United States');
+    
     updates = {
-      weight: body.weight,
-      height: body.height,
+      weight: normalizeWeight(body.weight, preferredUnits),
+      height: normalizeHeight(body.height, preferredUnits),
+      preferredUnits,
       isProfileComplete: true
     }
   }
@@ -82,10 +87,16 @@ const completeProfile = async (userModel, req, res) => {
     enabled: result?.enabled,
     email: result?.email,
     name: result?.name,
-    photo: result?.photo
+    photo: result?.photo,
+    weight: result?.weight,
+    height: result?.height,
+    preferredUnits: result?.preferredUnits
   }
 
-  return sendResponse(res, 200, true, resultData, 'we update this profile');
+  // Format the result data for response
+  const formattedResult = formatUserDataForResponse(resultData);
+
+  return sendResponse(res, 200, true, formattedResult, 'we update this profile');
 };
 
 module.exports = completeProfile;
