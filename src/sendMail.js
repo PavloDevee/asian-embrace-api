@@ -1,48 +1,47 @@
 const { emailVerfication, passwordVerfication, mailSendEmailTemplate, joinWaitlistTemplate, welcomeTemplate, profileUnverifiedTemplate, profileVerifiedTemplate, emailAddressChangeTemplate, passwordChangeTemplate, welcomeTemplateFemale, verificationRequiredTemplate, loginReminderTemplate, accountDeactivateTemplate, accountFreeTrialExpiring, accountFreeTrialExpired, planPurchaseSuccessfully, planPurchaseCancel } = require('@/emailTemplate/emailVerfication');
 
 const brevo = require('@sendinblue/client');
-// const { createTransport } = require("nodemailer");
-// Create an instance of the Brevo API client
-const apiInstance = new brevo.TransactionalEmailsApi();
-
-// Set API key for authorization
-// TEMPORARILY DISABLED BREVO API KEY SETUP
-// apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
 const sendMail = async ({ email, name, otp, subject, type, address, title, body, userEmail }) => {
-  // TEMPORARILY DISABLED EMAIL SENDING (pending Brevo IP fix)
-  console.log('Email sending is currently bypassed. Intended recipient:', email, 'Type:', type);
+  console.log('Starting email send process for:', email, 'Type:', type);
   
   // Log OTP if available for debugging/manual verification
   if (otp) {
     console.log(`>>>>>>>>>>>> OTP for ${email} (${type}): ${otp} <<<<<<<<<<<<`);
   }
 
-  // The check for process.env.DISABLE_EMAIL_SENDING was previously commented out by the user.
-  // Assuming unconditional bypass for now based on current file state.
-  return {
-    success: true,
-    message: 'Email sending is bypassed. Simulated success.', // Updated message
-    simulated: true
-  };
-  
-  /* Original logic start (currently bypassed by the return above)
-  // if (process.env.DISABLE_EMAIL_SENDING === 'true') {
-  //   return {
-  //     success: true,
-  //     message: 'Email sending is disabled. Simulated success.',
-  //     simulated: true
-  //   };
-  // }
-  // End of temporary disable block. Original logic below.
+  // Check if email sending is disabled
+  if (process.env.DISABLE_EMAIL_SENDING === 'true') {
+    console.log('📧 Email sending is disabled - returning simulated success');
+    return {
+      success: true,
+      message: 'Email sending is disabled. Simulated success.',
+      simulated: true
+    };
+  }
 
   try {
+    // Validate required environment variables
+    if (!process.env.BREVO_API_KEY) {
+      console.error('❌ BREVO_API_KEY is not set.');
+      throw new Error('Brevo API key missing. Please check your environment configuration.');
+    }
+
+    if (!process.env.EMAIL_USER) {
+      console.error('❌ EMAIL_USER is not set.');
+      throw new Error('EMAIL_USER missing. Please check your environment configuration.');
+    }
+
+    // Create and configure Brevo API client
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+    
     let typeUI;
-    console.log("forgotVerification", type);
+    console.log("Email type:", type);
     
     if (type === 'forgotVerification') {
       typeUI = passwordVerfication({ name, otp });
-    }  else if (type === 'mailSend') {
+    } else if (type === 'mailSend') {
       typeUI = mailSendEmailTemplate({ title, name, description: body })
     } else if (type === 'joinWaitlist') {
       typeUI = joinWaitlistTemplate({ title, name, email: userEmail })
@@ -74,29 +73,64 @@ const sendMail = async ({ email, name, otp, subject, type, address, title, body,
       typeUI = planPurchaseSuccessfully({ name, email });
     } else if (type === 'planPurchaseCancel') {
       typeUI = planPurchaseCancel({ name, email });
+    } else {
+      throw new Error(`Unknown email type: ${type}`);
+    }
+
+    if (!typeUI) {
+      throw new Error('Failed to generate email template');
     }
 
     const mailOptions = {
-      sender: { email: process.env.EMAIL_USER }, // Sender's email
-      to: [{ email: email }], // Recipient's email
-      subject: subject, // Email subject
-      htmlContent: typeUI // The email content in HTML
+      sender: { 
+        email: process.env.EMAIL_USER,
+        name: 'Asian Embrace'
+      },
+      to: [{ email: email }],
+      subject: subject,
+      htmlContent: typeUI
     };
 
-    if (!process.env.BREVO_API_KEY) {
-        console.error('Brevo API key is not set, but email sending is not explicitly disabled.');
-        throw new Error('Brevo API key missing.');
-    }
-    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+    console.log("Sending email with options:", {
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      sender: mailOptions.sender
+    });
+
     const response = await apiInstance.sendTransacEmail(mailOptions);
-    console.log("Brevo API response:", response);
-    return response;
+    console.log("✅ Brevo API response:", response.response?.statusCode, response.body?.messageId);
+    
+    return {
+      success: true,
+      message: 'Email sent successfully',
+      messageId: response.body?.messageId
+    };
 
   } catch (error) {
-    console.error("Error sending email:", error);
-    throw error;
+    console.error("❌ Error sending email:", error.message);
+    
+    // Handle specific Brevo errors
+    if (error.response?.body) {
+      console.error("Brevo API error details:", error.response.body);
+      
+      // Handle specific error cases
+      if (error.response.body.code === 'unauthorized' || error.response.body.message === 'Key not found') {
+        console.error('🔑 Invalid or expired Brevo API key. Please update BREVO_API_KEY in environment variables.');
+        return {
+          success: false,
+          message: 'Email service authentication failed. Please contact support.',
+          error: 'INVALID_API_KEY'
+        };
+      }
+    }
+    
+    // Return error but don't throw to prevent application crash
+    return {
+      success: false,
+      message: 'Failed to send email. Please try again later.',
+      error: error.message
+    };
   }
-  */ // End of original logic block
 };
 
 module.exports = sendMail;
