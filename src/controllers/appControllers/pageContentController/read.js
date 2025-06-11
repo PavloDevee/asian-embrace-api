@@ -9,17 +9,11 @@ const read = async (Model, req, res) => {
       removed: false,
     }).exec();
   } else {
-    if (req.params.slug == 'guidelines') {
-      result = await Model.find({
-        page: req.params.slug,
-        removed: false,
-      }).exec();
-    } else {
       result = await Model.findOne({
         page: req.params.slug,
         removed: false,
       }).exec();
-    }
+    
   }
 
   // If no results found, return document not found
