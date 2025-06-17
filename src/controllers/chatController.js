@@ -234,7 +234,7 @@ chatController.delete = async (req, res) => {
         const attachmentUrl = req.body.attachment;
 
         // Extract relative file path from full URL
-        const attachmentPath = new URL(attachmentUrl).pathname.replace(/^\/+/, ''); // e.g., public/uploads/chatAttachment/xxx.jpg
+        const attachmentPath = new URL(attachmentUrl).pathname.replace(/^\/+/, ''); // e.g., uploads/chatAttachment/xxx.jpg
         console.log("attachmentPath", attachmentPath);
         
         // Create a filter to match document by users and attachment path
@@ -253,7 +253,8 @@ chatController.delete = async (req, res) => {
         }
 
         // Optional: Delete physical file from server
-        const fullPath = path.join(__dirname, '..', attachmentPath);
+        // attachmentPath = "uploads/chatAttachment/xxx.jpg", але файл знаходиться в "src/public/uploads/..."
+        const fullPath = path.join(__dirname, '..', 'public', attachmentPath);
         fs.unlink(fullPath, (err) => {
             if (err) console.error('Error deleting file:', err);
         });

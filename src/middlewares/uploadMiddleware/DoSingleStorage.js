@@ -54,7 +54,7 @@ const DoSingleStorage = ({
 
         let _fileName = `${originalname}-${uniqueFileID}${fileExtension}`;
 
-        const filePath = `public/uploads/${entity}/${_fileName}`;
+        const filePath = `uploads/${entity}/${_fileName}`; // Видалив префікс "public/"
 
         let uploadParams = {
           Key: `${filePath}`,

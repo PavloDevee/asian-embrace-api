@@ -37,7 +37,7 @@ const fourStorageUpload = ({
                 // }
                 let _fileName = `${originalname}-${uniqueFileID}${fileExtension}`;
 
-                const filePath = `public/uploads/${entity}/${_fileName}`;
+                const filePath = `uploads/${entity}/${_fileName}`; // Видалив префікс "public/"
                 // saving file name and extension in request upload object
                 if (file.fieldname === uploadFieldName1) {
                     req.upload1 = {
