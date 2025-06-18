@@ -23,6 +23,7 @@ const userSubscriptionController = require("@/controllers/appControllers/userSub
 const planController = require("@/controllers/appControllers/planController");
 const chatController = require("@/controllers/chatController");
 const { handleImageUpload } = require("@/controllers/imageStorageController");
+const { handleAudioUpload } = require("@/controllers/audioStorageController");
 
 // Image Storage Configuration
 const storage = multer.memoryStorage();
@@ -38,6 +39,31 @@ const upload = multer({
   fileFilter: imageFileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10 MB limit for uploads
+  },
+});
+
+// Audio Storage Configuration
+const audioFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    "audio/webm",
+    "audio/mp3",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/m4a",
+    "audio/aac",
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not an audio file! Please upload only audio files."), false);
+  }
+};
+const audioUpload = multer({
+  storage: storage,
+  fileFilter: audioFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB limit for audio uploads
   },
 });
 
@@ -350,6 +376,14 @@ router.post(
   catchErrors(handleImageUpload)
 );
 
+// //_______________________________ Audio Storage Routes _______________________________
+
+router.post(
+  "/storage/audio-upload",
+  audioUpload.single("audioFile"),
+  catchErrors(handleAudioUpload)
+);
+
 // Middleware to handle multer errors specifically
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
@@ -366,7 +400,12 @@ router.use((error, req, res, next) => {
     if (error.message === "Not an image! Please upload only images.") {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.error("Unhandled error in image storage route:", error);
+    if (
+      error.message === "Not an audio file! Please upload only audio files."
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error("Unhandled error in storage route:", error);
     return res
       .status(500)
       .json({ success: false, message: "An unexpected error occurred." });
