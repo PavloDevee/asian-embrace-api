@@ -34,11 +34,48 @@ const imageFileFilter = (req, file, cb) => {
     cb(new Error("Not an image! Please upload only images."), false);
   }
 };
+
+// Media File Filter for chat attachments (images, videos, audio)
+const mediaFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/avif",
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+    "video/x-msvideo",
+    "audio/webm",
+    "audio/mp3",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/m4a",
+    "audio/aac",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Unsupported file type for chat attachment."), false);
+  }
+};
+
 const upload = multer({
   storage: storage,
   fileFilter: imageFileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10 MB limit for uploads
+  },
+});
+
+const uploadMedia = multer({
+  storage: storage,
+  fileFilter: mediaFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50 MB limit for media files
   },
 });
 
@@ -334,13 +371,11 @@ router.route("/get-token").post(catchErrors(chatController.getToken));
 
 // //_______________________________ Chat attachment_________________________________________
 
-router
-  .route("/chat/attachment")
-  .post(
-    adminAuth.isValidAuthToken,
-    singleStorageUpload({ entity: "chatAttachment", fieldName: "photo" }),
-    catchErrors(chatController.upload)
-  );
+router.route("/chat/attachment").post(
+  adminAuth.isValidAuthToken,
+  uploadMedia.single("file"), // Use media multer configuration for Supabase uploads
+  catchErrors(chatController.upload)
+);
 router
   .route("/chat/attachment/:recipientId")
   .get(adminAuth.isValidAuthToken, catchErrors(chatController.getAttachment));
