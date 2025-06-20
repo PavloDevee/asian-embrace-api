@@ -46,7 +46,7 @@ const singleStorageUpload = ({
           : slugify(file.originalname.split('.')[0].toLocaleLowerCase());
 
         let _fileName = `${originalname}-${uniqueFileID}${fileExtension}`;
-        const filePath = `public/uploads/${entity}/${_fileName}`;
+        const filePath = `uploads/${entity}/${_fileName}`; // Видалив префікс "public/"
 
         req.upload = {
           fileName: _fileName,

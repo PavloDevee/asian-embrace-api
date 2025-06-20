@@ -63,7 +63,9 @@ app.use('/api', erpApiRouter);
 // Routes protected by adminAuth.isValidAuthToken
 app.use('/api', adminAuth.isValidAuthToken, erpApiWithTokenRouter);
 
-app.use("/public", express.static(path.join(__dirname, 'public')));
+// Обслуговування статичних файлів без префіксу /public
+app.use("/uploads", express.static(path.join(__dirname, 'public/uploads')));
+app.use("/public", express.static(path.join(__dirname, 'public'))); // Залишаємо для сумісності
 startCronJob();
 loginStartCronJob();
 // If that above routes didnt work, we 404 them and forward to error handler

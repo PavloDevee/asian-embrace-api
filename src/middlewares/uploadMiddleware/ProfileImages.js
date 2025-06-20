@@ -26,7 +26,7 @@ const fourStorageUpload = ({
                     : slugify(file.originalname.split('.')[0].toLowerCase());
                 
                 let _fileName = `${originalname}-${uniqueFileID}${fileExtension}`;
-                let filePath = `public/uploads/${entity}/${_fileName}`;
+                let filePath = `uploads/${entity}/${_fileName}`; // Видалив префікс "public/"
 
                 if (!req.body[fieldName1]) req.body[fieldName1] = []; // Initialize array for images
 

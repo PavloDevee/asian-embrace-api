@@ -116,4 +116,4 @@ async function seed(maleCount = 5, femaleCount = 5) {
 
 // Default: Create 5 male and 5 female users
 // You can customize by calling: seed(maleCount, femaleCount)
-seed();
+seed(15,0);
