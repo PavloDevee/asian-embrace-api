@@ -269,6 +269,9 @@ router
   .route("/user/block")
   .get(adminAuth.isValidAuthToken, catchErrors(blockController.list));
 router
+  .route("/user/block/:blockedUserId")
+  .delete(adminAuth.isValidAuthToken, catchErrors(blockController.remove));
+router
   .route("/user/block-list")
   .get(
     adminAuth.isValidAuthToken,
