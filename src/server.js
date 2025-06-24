@@ -297,6 +297,68 @@ io.on("connection", (socket) => {
     socket.emit("users-updated", Array.from(connectedUsers.values()));
   });
 
+  // 📹 Video state synchronization
+
+  // Handle video enabled by peer
+  socket.on("video-enabled", (callData) => {
+    console.log("📹 Video enabled:", callData);
+
+    const { meetingId, from, to } = callData;
+
+    // Find recipient's socket and notify them
+    if (to) {
+      // Direct notification to specific user ID
+      socket.to(to).emit("video-enabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
+      console.log(
+        `📹 Notified user ${to} about video enabled by ${from.name || from._id}`
+      );
+    }
+
+    // Also broadcast to the room just in case
+    if (meetingId) {
+      socket.to(meetingId).emit("video-enabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
+    }
+  });
+
+  // Handle video disabled by peer
+  socket.on("video-disabled", (callData) => {
+    console.log("📹 Video disabled:", callData);
+
+    const { meetingId, from, to } = callData;
+
+    // Find recipient's socket and notify them
+    if (to) {
+      // Direct notification to specific user ID
+      socket.to(to).emit("video-disabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
+      console.log(
+        `📹 Notified user ${to} about video disabled by ${
+          from.name || from._id
+        }`
+      );
+    }
+
+    // Also broadcast to the room just in case
+    if (meetingId) {
+      socket.to(meetingId).emit("video-disabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
+    }
+  });
+
   // Handle disconnect
   socket.on("disconnect", async () => {
     let disconnectedUserId = null;
@@ -345,6 +407,38 @@ io.on("connection", (socket) => {
 
       // Broadcast updated user list
       io.emit("users-updated", Array.from(connectedUsers.values()));
+    }
+  });
+
+  // Обробка увімкнення відео
+  socket.on("video-enabled", (callData) => {
+    console.log("📹 Video enabled:", callData);
+
+    const { meetingId, from, to } = callData;
+
+    // Повідомити іншого учасника
+    if (to) {
+      socket.to(to).emit("video-enabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
+    }
+  });
+
+  // Обробка вимкнення відео
+  socket.on("video-disabled", (callData) => {
+    console.log("📹 Video disabled:", callData);
+
+    const { meetingId, from, to } = callData;
+
+    // Повідомити іншого учасника
+    if (to) {
+      socket.to(to).emit("video-disabled-by-peer", {
+        meetingId,
+        from,
+        timestamp: Date.now(),
+      });
     }
   });
 });

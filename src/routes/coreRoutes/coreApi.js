@@ -371,6 +371,12 @@ router
 router.route("/blog/read/:slug").get(catchErrors(blogController.read));
 
 router.route("/get-token").post(catchErrors(chatController.getToken));
+router
+  .route("/get-videosdk-token")
+  .post(
+    adminAuth.isValidAuthToken,
+    catchErrors(chatController.getVideoSDKToken)
+  );
 
 // //_______________________________ Chat attachment_________________________________________
 
