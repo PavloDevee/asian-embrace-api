@@ -12,7 +12,12 @@
     "setup": "node src/setup/setup.js",
     "upgrade": "node src/setup/upgrade.js",
     "reset": "node src/setup/reset.js",
-    "seed": "node src/seed/seed.js"
+    "seed": "node src/seed/seed.js",
+    "migrate:attachments": "node migrate-chat-attachments.js migrate",
+    "migrate:attachments-test": "node migrate-chat-attachments.js test",
+    "migrate:status": "node migrate-chat-attachments.js status",
+    "migrate:rollback-info": "node migrate-chat-attachments.js rollback",
+    "migrate:test": "node test-migration.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.509.0",

@@ -269,6 +269,9 @@ router
   .route("/user/block")
   .get(adminAuth.isValidAuthToken, catchErrors(blockController.list));
 router
+  .route("/user/block/:blockedUserId")
+  .delete(adminAuth.isValidAuthToken, catchErrors(blockController.remove));
+router
   .route("/user/block-list")
   .get(
     adminAuth.isValidAuthToken,
@@ -368,6 +371,12 @@ router
 router.route("/blog/read/:slug").get(catchErrors(blogController.read));
 
 router.route("/get-token").post(catchErrors(chatController.getToken));
+router
+  .route("/get-videosdk-token")
+  .post(
+    adminAuth.isValidAuthToken,
+    catchErrors(chatController.getVideoSDKToken)
+  );
 
 // //_______________________________ Chat attachment_________________________________________
 

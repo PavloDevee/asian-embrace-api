@@ -1,14 +1,15 @@
-const { sendResponse, notification } = require('@/helpers');
-const { formatUserDataForResponse } = require('@/helpers/unitConversions');
-const mongoose = require('mongoose');
+const { sendResponse, notification } = require("@/helpers");
+const { formatUserDataForResponse } = require("@/helpers/unitConversions");
+const mongoose = require("mongoose");
 
 const read = async (userModel, req, res) => {
-
   const User = mongoose.model(userModel);
-  const Favourite = mongoose.model('Favourite');
-  const ViewProfile = mongoose.model('ViewProfile');
+  const Favourite = mongoose.model("Favourite");
+  const ViewProfile = mongoose.model("ViewProfile");
+  const Block = mongoose.model("Block");
   // const UserPassword = mongoose.model(userModel + 'Password');
   let isFavourite = false;
+  let isBlocked = false;
 
   if (req.params.id) {
     const favouriteRecord = await Favourite.findOne({
@@ -19,6 +20,15 @@ const read = async (userModel, req, res) => {
 
     isFavourite = !!favouriteRecord; // Convert to boolean
 
+    // Check if current user has blocked this user
+    const blockRecord = await Block.findOne({
+      user: req.user._id,
+      blockedUser: req.params.id,
+      removed: false,
+    }).exec();
+
+    isBlocked = !!blockRecord; // Convert to boolean
+
     let client = await ViewProfile.findOne({
       user: req.params.id,
       viewBy: req.user._id,
@@ -28,7 +38,7 @@ const read = async (userModel, req, res) => {
     if (!client) {
       await new ViewProfile({
         user: req.params.id,
-        viewBy: req.user._id
+        viewBy: req.user._id,
       }).save();
       // Add Notification
       await notification("view", req.user._id, req.params.id);
@@ -45,14 +55,25 @@ const read = async (userModel, req, res) => {
     return sendResponse(res, 404, false, null, "No document found");
   } else {
     // Get the viewer's (logged-in user's) preferred units
-    const viewer = await User.findById(req.user._id).select('preferredUnits').exec();
-    const viewerPreferredUnits = viewer?.preferredUnits || 'metric';
-    
+    const viewer = await User.findById(req.user._id)
+      .select("preferredUnits")
+      .exec();
+    const viewerPreferredUnits = viewer?.preferredUnits || "metric";
+
     // Format the response data using viewer's preferred units
     const userData = tmpResult.toObject();
-    const formattedData = formatUserDataForResponse(userData, viewerPreferredUnits);
-    
-    return sendResponse(res, 200, true, { ...formattedData, isFavourite }, "We found this document");
+    const formattedData = formatUserDataForResponse(
+      userData,
+      viewerPreferredUnits
+    );
+
+    return sendResponse(
+      res,
+      200,
+      true,
+      { ...formattedData, isFavourite, isBlocked },
+      "We found this document"
+    );
   }
 };
 

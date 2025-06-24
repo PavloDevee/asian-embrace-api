@@ -84,16 +84,22 @@ chatController.getToken = async (req, res) => {
     console.error("Error generating Zego token:", error);
     // Check if error has a specific structure from generateToken04
     if (error && error.errorCode) {
-      return res.status(400).json({
-        success: false,
-        error: error.errorMessage,
-        errorCode: error.errorCode,
-      });
+
+      return res
+        .status(400)
+        .json({
+          success: false,
+          error: error.errorMessage,
+          errorCode: error.errorCode,
+        });
     }
-    res.status(400).json({
-      success: false,
-      error: error.message || "Failed to generate token",
-    });
+    res
+      .status(400)
+      .json({
+        success: false,
+        error: error.message || "Failed to generate token",
+      });
+
   }
 };
 
@@ -199,65 +205,38 @@ function generateToken04(
   return "04" + Buffer.from(buf).toString("base64");
 }
 
+
 chatController.upload = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file provided",
+    if (req.body.photo) {
+      const data = {
+        attechment: req.body.photo,
+        sender_id: req.user._id,
+        receiver_id: req.body.receiver_id,
+        attechment_type: req.body.type,
+      };
+
+      // Create a new rose
+      await new ChatAttachment(data).save();
+
+      return res.status(200).json({
+        success: true,
+        data: req.body.photo,
+        message: "Successfully upload attachment",
       });
-    }
-
-    // Determine file type based on mimetype
-    let fileType = "image"; // default
-    let uploadResult;
-
-    if (req.file.mimetype.startsWith("image/")) {
-      fileType = "image";
-      const { uploadImageToSupabase } = require("../helpers/imageUploadHelper");
-      uploadResult = await uploadImageToSupabase(req.file);
-    } else if (req.file.mimetype.startsWith("video/")) {
-      fileType = "video";
-      const { uploadImageToSupabase } = require("../helpers/imageUploadHelper");
-      uploadResult = await uploadImageToSupabase(req.file);
-    } else if (req.file.mimetype.startsWith("audio/")) {
-      fileType = "audio";
-      const { uploadAudioToSupabase } = require("../helpers/audioUploadHelper");
-      uploadResult = await uploadAudioToSupabase(req.file);
     } else {
-      return res.status(400).json({
+      return res.status(200).json({
         success: false,
-        message: "Unsupported file type",
+        message: "Attachment not upload",
       });
     }
-
-    if (!uploadResult || !uploadResult.publicUrl) {
-      return res.status(500).json({
-        success: false,
-        message: "Failed to upload file to storage",
-      });
-    }
-
-    // Save attachment record in database
-    const data = {
-      attechment: uploadResult.publicUrl, // Store Supabase URL
-      sender_id: req.user._id,
-      receiver_id: req.body.receiver_id,
-      attechment_type: fileType,
-    };
-
-    await new ChatAttachment(data).save();
+  } catch (error) {
+    console.log("error", error);
 
     return res.status(200).json({
-      success: true,
-      data: uploadResult.publicUrl,
-      message: "Successfully uploaded attachment",
-    });
-  } catch (error) {
-    console.error("Chat attachment upload error:", error);
-    return res.status(500).json({
       success: false,
-      message: error.message || "Something went wrong",
+      message: "something went wrong",
+
     });
   }
 };
@@ -335,6 +314,7 @@ chatController.delete = async (req, res) => {
       return sendResponse(res, 404, false, null, "No document found");
     }
 
+
     // Optional: Delete physical file from server
     // attachmentPath = "uploads/chatAttachment/xxx.jpg", але файл знаходиться в "src/public/uploads/..."
     const fullPath = path.join(__dirname, "..", "public", attachmentPath);
@@ -352,6 +332,56 @@ chatController.delete = async (req, res) => {
   } catch (error) {
     console.error("Delete error:", error);
     return sendResponse(res, 500, false, null, "Something went wrong");
+  }
+};
+
+chatController.getVideoSDKToken = async (req, res) => {
+  const jwt = require("jsonwebtoken");
+
+  // VideoSDK credentials (move to environment variables in production)
+  const API_KEY =
+    process.env.VIDEOSDK_API_KEY || "361c3d59-a001-470b-a35d-6d8eac8baffa";
+  const SECRET =
+    process.env.VIDEOSDK_SECRET ||
+    "2ad52fa80ba2acf76b50d39222f83ac387a1af239cfac0e329ce83560c2c3a6e";
+
+  if (!API_KEY || !SECRET) {
+    console.error(
+      "VideoSDK API Key or Secret is not configured in environment variables."
+    );
+    return res.status(500).json({
+      success: false,
+      error: "VideoSDK configuration error.",
+    });
+  }
+
+  const options = {
+    expiresIn: "120m", // 2 hours
+    algorithm: "HS256",
+  };
+
+  const payload = {
+    apikey: API_KEY,
+    permissions: ["allow_join"], // Permissions for joining meetings
+    version: 2,
+  };
+
+  try {
+    const token = jwt.sign(payload, SECRET, options);
+
+    return res.status(200).json({
+      success: true,
+      token,
+      message: "VideoSDK token generated successfully",
+    });
+  } catch (error) {
+    console.error("Error generating VideoSDK token:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to generate VideoSDK token",
+      details: error.message,
+    });
+
   }
 };
 
