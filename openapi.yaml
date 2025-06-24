@@ -1,0 +1,1035 @@
+openapi: 3.0.3
+info:
+  title: Asian Embrace API - Gold Standard
+  description: The definitive, comprehensive API documentation for the Asian Embrace platform. This document covers every endpoint, including authentication, user management, real-time messaging, video call signaling, payments, content management, and administrative functions.
+  version: "1.2.0"
+  contact:
+    name: API Support
+    email: dev-team@asianembrace.com
+
+servers:
+  - url: http://localhost:8888/api
+    description: Local Development Server
+  - url: https://api.yourdomain.com/api
+    description: Production Server
+
+tags:
+  - name: Authentication
+    description: User registration, login, logout, and password recovery.
+  - name: User Account
+    description: Endpoints for managing the authenticated user's own account.
+  - name: User Profile
+    description: Endpoints for creating, reading, and updating user profiles.
+  - name: User Discovery & Interactions
+    description: Endpoints related to discovering, favouriting, blocking, and reporting other users.
+  - name: Messaging & Real-Time
+    description: Endpoints for real-time messaging and video call signaling.
+  - name: Media & Uploads
+    description: Endpoints for uploading user media.
+  - name: Subscriptions & Payments
+    description: Endpoints for managing subscription plans and user payments.
+  - name: Public Content (CMS)
+    description: Endpoints for accessing public content like blogs, FAQs, and pages.
+  - name: Admin - User Management
+    description: Protected endpoints for managing users.
+  - name: Admin - Content Management
+    description: Protected endpoints for managing CMS content like Blogs, FAQs, and Pages.
+  - name: Admin - General
+    description: General protected endpoints for high-level administrative tasks.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Enter your JWT in the format: `Bearer <token>`"
+
+  schemas:
+    # REQUEST BODIES
+    RegisterRequest:
+      type: object
+      required: [name, email, password, gender, dob]
+      properties:
+        name: { type: string, example: "Jane Doe" }
+        email: { type: string, format: email, example: "jane.doe@example.com" }
+        password: { type: string, format: password, example: "strongpassword123", description: "Must be at least 8 characters and contain one special character." }
+        gender: { type: string, enum: [male, female] }
+        dob: { type: string, format: date, example: "1990-01-15", description: "User must be at least 18 years old."}
+        countryCode: { type: string, example: "+1" }
+        referralCode: { type: string }
+        confirmAge: { type: boolean }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: "jane.doe@example.com" }
+        password: { type: string, format: password, example: "strongpassword123" }
+    PasswordChangeRequest:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword: { type: string, format: password }
+        newPassword: { type: string, format: password }
+    EmailChangeRequest:
+      type: object
+      required: [newEmail, password]
+      properties:
+        newEmail: { type: string, format: email }
+        password: { type: string, format: password }
+
+    # DATA MODELS
+    User:
+      type: object
+      properties:
+        _id: { type: string, example: "60c72b2f9b1d8e001f8e4c6a" }
+        name: { type: string, example: "Jane Doe" }
+        email: { type: string, format: email, example: "jane.doe@example.com" }
+        gender: { type: string, enum: [male, female] }
+        photo: { type: string, format: uri, example: "https://.../photo.jpg" }
+        country: { type: string, example: "USA" }
+        city: { type: string, example: "New York" }
+        isProfileComplete: { type: boolean }
+        isPlanPurchase: { type: boolean }
+        isVerified: { type: string, enum: [pending, verified, unverified]}
+        height: 
+          type: object
+          properties:
+            value: { type: number }
+            unit: { type: string, enum: [cm, ft] }
+            displayValue: { type: string }
+        weight:
+          type: object
+          properties:
+            value: { type: number }
+            unit: { type: string, enum: [kg, lbs] }
+            displayValue: { type: string }
+    
+    Notification:
+      type: object
+      properties:
+        _id: { type: string }
+        type: { type: string, enum: [rose, view, like, chat, comment] }
+        message: { type: string, example: "John Doe liked your post." }
+        isRead: { type: boolean }
+        created: { type: string, format: date-time }
+
+    # GENERIC RESPONSES
+    SuccessResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string, example: "Operation successful." }
+    ErrorResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        message: { type: string, example: "An error occurred." }
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        message: { type: string }
+        result:
+          type: object
+          properties:
+            token: { type: string }
+            user: { $ref: "#/components/schemas/User" }
+    PaginatedUsers:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        result:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        pagination:
+          type: object
+          properties:
+            page: { type: integer }
+            pages: { type: integer }
+            count: { type: integer }
+
+paths:
+  # AUTHENTICATION
+  /register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+      responses:
+        "200": { description: "Successful registration", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
+        "400": { description: "Bad Request (e.g., email already exists)", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /login:
+    post:
+      tags: [Authentication]
+      summary: Log in a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200": { description: "Successful login", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
+        "401": { description: "Unauthorized (Invalid credentials)", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /user/email-verify:
+    post:
+      tags: [Authentication]
+      summary: Verify user's email with OTP
+      description: After registration, the user submits the OTP sent to their email to verify their account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, otp]
+              properties:
+                userId: { type: string, description: "The ID of the user being verified." }
+                otp: { type: string, example: "123456" }
+      responses:
+        "200": { description: "Email verified successfully, returns auth token.", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
+        "403": { description: "Invalid OTP.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /user/resend-otp-email:
+    post:
+      tags: [Authentication]
+      summary: Resend Email Verification OTP
+      description: If the user didn't receive the initial OTP for email verification, this endpoint resends it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId: { type: string, description: "The ID of the user who needs a new OTP." }
+      responses:
+        "200": { description: "Email verification sent.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+  /logout:
+    get:
+      tags: [Authentication]
+      summary: Log out the current user
+      security: [{"bearerAuth": []}]
+      description: Invalidates the user's session on the server-side if session-based persistence is used.
+      responses:
+        "200": { description: "Logout successful", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+  /forgetpassword:
+    post:
+      tags: [Authentication]
+      summary: Forgot Password
+      description: Sends a password reset OTP to the user's email.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { email: { type: string, format: email } }
+      responses:
+        "200": { description: "OTP sent successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+  /user/resend-otp:
+    post:
+      tags: [Authentication]
+      summary: Resend Password Reset OTP
+      description: If the user didn't receive the password reset OTP, this endpoint resends it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type: string, description: "The ID of the user who needs a new OTP." }
+      responses:
+        "200": { description: "Email verification sent.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+  /check-otp:
+    post:
+      tags: [Authentication]
+      summary: Verify Password Reset OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                otp: { type: string, example: "123456" }
+      responses:
+        "200": { description: "OTP is valid", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /resetpassword:
+    post:
+      tags: [Authentication]
+      summary: Reset Password with OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: email }
+                otp: { type: string, example: "123456" }
+                password: { type: string, format: password }
+      responses:
+        "200": { description: "Password reset successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+
+  # USER ACCOUNT MANAGEMENT
+  /user/me:
+    get:
+      tags: [User Account]
+      summary: Get Current User's Profile
+      security: [{"bearerAuth": []}]
+      description: Retrieves the complete profile information for the currently authenticated user.
+      responses:
+        "200": { description: "Current user's profile data.", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+        "404": { description: "User not found.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+    patch:
+      tags: [User Account]
+      summary: Update Current User's Profile
+      security: [{"bearerAuth": []}]
+      description: General purpose endpoint to update profile fields for the authenticated user, sent in sections.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                section: { type: integer, description: "The section of the profile being updated (1-5)." }
+                name: { type: string }
+                city: { type: string }
+                country: { type: string }
+                interests: { type: array, items: {type: string} }
+      responses:
+        "200": { description: "Profile updated successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+  /user/change-password:
+    patch:
+      tags: [User Account]
+      summary: Change Password
+      security: [{"bearerAuth": []}]
+      description: Allows an authenticated user to change their own password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PasswordChangeRequest" }
+      responses:
+        "200": { description: "Password changed successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "401": { description: "Incorrect old password.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /user/change-email:
+    patch:
+      tags: [User Account]
+      summary: Change Email Address
+      security: [{"bearerAuth": []}]
+      description: Allows an authenticated user to change their email address after verifying with their password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EmailChangeRequest" }
+      responses:
+        "200": { description: "Email changed successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "401": { description: "Incorrect password.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+  /user/match-password/{password}:
+    get:
+      tags: [User Account]
+      summary: Verify Current Password
+      security: [{"bearerAuth": []}]
+      description: Checks if the provided password matches the user's current password.
+      parameters:
+        - name: password
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: "Password matches.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "400": { description: "Password does not match.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+
+  # USER PROFILE
+  /user/complete-profile:
+    patch:
+      tags: [User Profile]
+      summary: Mark Profile as Complete
+      security: [{"bearerAuth": []}]
+      description: A specific endpoint to set the `isProfileComplete` flag to true, typically after finishing the onboarding flow.
+      responses:
+        "200": { description: "Profile marked as complete.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+  /user/upload-verify-image:
+    patch:
+      tags: [User Profile]
+      summary: Upload Verification Image
+      security: [{"bearerAuth": []}]
+      description: Uploads an image for manual profile verification by an admin.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200": { description: "Verification image uploaded successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+
+  # USER DISCOVERY & INTERACTIONS
+  /user/discover-list:
+    get:
+      tags: [User Discovery & Interactions]
+      summary: List Users for Discovery
+      security: [{"bearerAuth": []}]
+      description: The main endpoint for the discovery/browse page, providing a paginated and filterable list of users.
+      parameters:
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+        - { name: limit, in: query, schema: { type: integer, default: 20 } }
+        - { name: gender, in: query, schema: { type: string, enum: [male, female] } }
+      responses:
+        "200": { description: "A paginated list of users.", content: { "application/json": { schema: { $ref: "#/components/schemas/PaginatedUsers" }}}}
+  /user/get/{id}:
+    get:
+      tags: [User Discovery & Interactions]
+      summary: Get User by ID (for Chat)
+      security: [{"bearerAuth": []}]
+      description: Retrieves a user's basic information, typically used to get details for a chat session.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: "The ID of the user to retrieve." }
+      responses:
+        "200": { description: "User data", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+        "404": { description: "User not found" }
+  /user/favourite:
+    post:
+      tags: [User Discovery & Interactions]
+      summary: Add a user to favourites
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { user_id_to_favourite: { type: string, description: "The _id of the user to favourite."}}}
+      responses:
+        "201": { description: "User added to favourites." }
+        "409": { description: "Conflict (user already in favourites)." }
+    get:
+      tags: [User Discovery & Interactions]
+      summary: Get Favourited Users List
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "An array of favourited user objects." }
+  /user/block:
+    post:
+      tags: [User Discovery & Interactions]
+      summary: Block a User
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { user_id_to_block: { type: string, description: "The _id of the user to block."}}}
+      responses:
+        "201": { description: "User blocked successfully." }
+    get:
+      tags: [User Discovery & Interactions]
+      summary: Get Blocked Users List
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "An array of blocked user objects." }
+  /user/block-list:
+    get:
+      tags: [User Discovery & Interactions]
+      summary: Get All Blocked Users (Both Ways)
+      security: [{"bearerAuth": []}]
+      description: Gets a list of users the current user has blocked, and users who have blocked the current user.
+      responses:
+        "200": { description: "A list of all associated blocked user objects." }
+  /user/report:
+    post:
+      tags: [User Discovery & Interactions]
+      summary: Report a User
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { user_id_to_report: { type: string }, reason: { type: string, example: "Inappropriate photos"}}}
+      responses:
+        "201": { description: "Report submitted successfully." }
+  /user/rose:
+    post:
+      tags: [User Discovery & Interactions]
+      summary: Send a Rose
+      description: Sends a 'Rose' to another user, which is a special type of notification or like.
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                receivedBy: { type: string, description: "The _id of the user to receive the rose."}
+      responses:
+        "200": { description: "Rose sent successfully" }
+
+  # MESSAGING & REAL-TIME
+  /get-token:
+    post:
+      tags: [Messaging & Real-Time]
+      summary: Get ZegoCloud Token
+      security: [{"bearerAuth": []}]
+      description: CRITICAL - Fetches a real-time messaging token required to initialize the chat SDK on the frontend.
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { userId: { type: string }}}}}
+      responses:
+        "200": { description: "ZegoCloud token", content: { "application/json": { schema: { type: object, properties: { success: { type: boolean }, token: { type: string } } } } } }
+
+  # NOTIFICATIONS (User Account)
+  /user/notification:
+    get:
+      tags: [User Account]
+      summary: Get User Notifications
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "An array of notification objects.", content: { "application/json": { schema: { type: array, items: { $ref: "#/components/schemas/Notification" }}}}}
+  /user/notification-count:
+    get:
+      tags: [User Account]
+      summary: Get Unread Notification Count
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "Count of unread notifications.", content: { "application/json": { schema: { type: object, properties: { count: { type: integer, example: 5 } } }}}}
+  /user/notification-read:
+    get:
+      tags: [User Account]
+      summary: Mark All Notifications as Read
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "Notifications marked as read." }
+  /user/notification-read/{id}:
+    get:
+      tags: [User Account]
+      summary: Mark a Specific Notification as Read
+      security: [{"bearerAuth": []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: "Notification marked as read." }
+
+  # MEDIA & UPLOADS
+  /user/upload-photo:
+    patch:
+      tags: [Media & Uploads]
+      summary: Upload or Change Profile Photo
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }}}}}
+      responses:
+        "200": { description: "Photo uploaded successfully.", content: { "application/json": { schema: { type: object, properties: { url: { type: string, format: uri } }}}}}
+  /user/change-image:
+    patch:
+      tags: [Media & Uploads]
+      summary: Change Profile Photo from existing gallery
+      security: [{"bearerAuth": []}]
+      description: Sets an already uploaded gallery image as the main profile photo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                imagePath: { type: string, format: "uri", description: "The URL of the gallery image to set as profile photo."}
+      responses:
+        "200": { description: "Profile photo updated successfully."}
+  /user/upload-images:
+    patch:
+      tags: [Media & Uploads]
+      summary: Upload Gallery Images and Video
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content: { multipart/form-data: { schema: { type: object, properties: { images: { type: array, items: { type: string, format: binary }}, video: { type: string, format: binary }}}}}
+      responses:
+        "200": { description: "Media uploaded successfully." }
+  /user/delete-image:
+    patch:
+      tags: [Media & Uploads]
+      summary: Delete a Gallery Image
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { imageUrl: { type: string, format: uri }}}}}
+      responses:
+        "200": { description: "Image deleted successfully." }
+  /chat/attachment:
+    post:
+      tags: [Media & Uploads]
+      summary: Upload a Chat Attachment
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }}}}}
+      responses:
+        "201": { description: "Attachment uploaded successfully.", content: { "application/json": { schema: { type: object, properties: { url: { type: string, format: uri } }}}}}
+    delete:
+      tags: [Media & Uploads]
+      summary: Delete a Chat Attachment
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipientId: { type: string }
+                attachment: { type: string, format: "uri" }
+      responses:
+        "200": { description: "Attachment deleted successfully." }
+  /chat/attachment/{recipientId}:
+    get:
+      tags: [Media & Uploads]
+      summary: Get Chat Attachments
+      description: Retrieves a list of image and video attachments exchanged with a specific user.
+      security: [{"bearerAuth": []}]
+      parameters:
+        - name: recipientId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: "A list of attachments."}
+
+  # SUBSCRIPTIONS & PAYMENTS
+  /user/plan-purchase:
+    post:
+      tags: [Subscriptions & Payments]
+      summary: Purchase a Plan
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, properties: { plan_id: { type: string, description: "The _id of the plan being purchased."}}}
+      responses:
+        "201": { description: "Subscription created successfully." }
+        "400": { description: "Bad Request (e.g., invalid plan_id)." }
+    delete:
+      tags: [Subscriptions & Payments]
+      summary: Cancel a Plan
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "Subscription cancelled successfully." }
+  /user/plan-purchase/{userId}:
+    get:
+      tags: [Subscriptions & Payments]
+      summary: Get User's Subscription
+      security: [{"bearerAuth": []}]
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "The user's subscription object." }
+        "404": { description: "Subscription not found for this user." }
+  /plan-details:
+    get:
+      tags: [Subscriptions & Payments]
+      summary: Get Available Subscription Plans
+      responses:
+        "200": { description: "A list of available subscription plan objects." }
+  /contact-us:
+    get:
+      tags: [Public Content (CMS)]
+      summary: List Contact Us Submissions
+      security: [{"bearerAuth": []}]
+      description: (Admin) Retrieves a list of all submissions from the "Contact Us" form.
+      responses:
+        "200": { description: "A list of contact us submissions." }
+    post:
+      tags: [Public Content (CMS)]
+      summary: Submit Contact Us Form
+      description: Public endpoint for users to send a message via the "Contact Us" form.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: "email" }
+                message: { type: string }
+      responses:
+        "200": { description: "Message submitted successfully." }
+    patch:
+      tags: [Admin - General]
+      summary: Mark all Contact Us submissions as read
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "All submissions marked as read." }
+
+  # PUBLIC CONTENT (CMS)
+  /interest:
+    get:
+      tags: [Public Content (CMS)]
+      summary: Get List of Interests
+      description: Retrieves the master list of all available interests users can select.
+      responses:
+        "200": { description: "An array of interest strings." }
+  /blog:
+    get:
+      tags: [Public Content (CMS)]
+      summary: List Blog Posts
+      responses:
+        "200": { description: "A paginated list of blog posts." }
+    post:
+      tags: [Admin - Content Management]
+      summary: Create a Blog Post (Admin)
+      security: [{"bearerAuth": []}]
+      description: Creates a new blog post. Requires admin role.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                bannerImage: { type: string, format: binary }
+      responses:
+        "201": { description: "Blog post created." }
+        "403": { description: "Forbidden." }
+    patch:
+      tags: [Admin - Content Management]
+      summary: Update a Blog Post (Admin)
+      security: [{"bearerAuth": []}]
+      description: Updates an existing blog post. Requires admin role.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                title: { type: string }
+                content: { type: string }
+                bannerImage: { type: string, format: binary }
+      responses:
+        "200": { description: "Blog post updated." }
+        "403": { description: "Forbidden." }
+  /blog/{id}:
+    get:
+      tags: [Public Content (CMS)]
+      summary: Get Blog Post by ID
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "A single blog post object." }
+        "404": { description: "Blog post not found." }
+    delete:
+      tags: [Admin - Content Management]
+      summary: Delete a Blog Post (Admin)
+      security: [{"bearerAuth": []}]
+      description: Deletes a blog post. Requires admin role.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "Blog post deleted." }
+        "403": { description: "Forbidden." }
+  /blog/read/{slug}:
+    get:
+      tags: [Public Content (CMS)]
+      summary: Get Blog Post by Slug
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "A single blog post object." }
+        "404": { description: "Blog post not found." }
+  /faq:
+    get:
+      tags: [Public Content (CMS)]
+      summary: Get all FAQs
+      responses:
+        "200": { description: "A list of all FAQ objects."}
+    post:
+      tags: [Admin - Content Management]
+      summary: Create a FAQ
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question: { type: string }
+                answer: { type: string }
+      responses:
+        "201": { description: "FAQ created."}
+    patch:
+      tags: [Admin - Content Management]
+      summary: Update a FAQ
+      security: [{"bearerAuth": []}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                question: { type: string }
+                answer: { type: string }
+      responses:
+        "200": { description: "FAQ updated."}
+    delete:
+      tags: [Admin - Content Management]
+      summary: Delete a FAQ
+      security: [{"bearerAuth": []}]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200": { description: "FAQ deleted."}
+  /page-content/read/{slug}:
+    get:
+      tags: [Public Content (CMS)]
+      summary: Get Page Content by Slug
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "A single page content object." }
+        "404": { description: "Page content not found." }
+
+  # ADMIN - GENERAL
+  /admin/dashboard:
+    get:
+      tags: [Admin - General]
+      summary: Get Admin Dashboard Data
+      security: [{"bearerAuth": []}]
+      description: Retrieves aggregated data for the admin dashboard. Requires admin role.
+      responses:
+        "200": { description: "Dashboard data object." }
+        "403": { description: "Forbidden." }
+  /admin/sidebar:
+    get:
+      tags: [Admin - General]
+      summary: Get Admin Sidebar Data
+      security: [{"bearerAuth": []}]
+      description: Retrieves data for admin sidebar, such as notification counts for reports and contacts.
+      responses:
+        "200": { description: "Sidebar data object." }
+        "403": { description: "Forbidden." }
+  /admin/profile:
+    get:
+      tags: [Admin - General]
+      summary: Get Admin Profile
+      security: [{"bearerAuth": []}]
+      description: Retrieves the profile of the currently logged-in admin.
+      responses:
+        "200": { description: "Admin profile data." }
+  /admin/profile/update:
+    patch:
+      tags: [Admin - General]
+      summary: Update Admin Profile
+      security: [{"bearerAuth": []}]
+      description: Allows an admin to update their own email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string, format: "email" }
+                password: { type: string, format: "password"}
+      responses:
+        "200": { description: "Admin profile updated." }
+  /admin/profile/password:
+    patch:
+      tags: [Admin - General]
+      summary: Update Admin Password
+      security: [{"bearerAuth": []}]
+      description: Allows an admin to update their own password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password: { type: string, format: "password"}
+                passwordCheck: { type: string, format: "password"}
+      responses:
+        "200": { description: "Admin password updated." }
+
+  # ADMIN - USER MANAGEMENT
+  /admin/users/list:
+    get:
+      tags: [Admin - User Management]
+      summary: List all users (Admin)
+      security: [{"bearerAuth": []}]
+      description: Retrieves a complete, paginated list of all users. Requires an admin role.
+      responses:
+        "200": { description: "A list of all user objects.", content: { "application/json": { schema: { $ref: "#/components/schemas/PaginatedUsers" }}}}
+        "403": { description: "Forbidden." }
+  /admin/users/delete/{id}:
+    delete:
+      tags: [Admin - User Management]
+      summary: Delete a User (Admin)
+      security: [{"bearerAuth": []}]
+      description: Allows an admin to soft-delete a user's account.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: "The ID of the user to delete." }
+      responses:
+        "200": { description: "User deleted." }
+        "403": { description: "Forbidden." }
+  /admin/status/{id}:
+    patch:
+      tags: [Admin - User Management]
+      summary: Change User Status (Admin)
+      security: [{"bearerAuth": []}]
+      description: Allows an admin to enable or disable a user's account.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }, description: "The ID of the user to modify." }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200": { description: "User status updated." }
+        "403": { description: "Forbidden." }
+  /admin/users/profile-verified/{id}:
+    get:
+      tags: [Admin - User Management]
+      summary: Update User Verification Status
+      security: [{"bearerAuth": []}]
+      description: Allows an admin to set the verification status of a user's profile.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }}
+        - { name: verified, in: query, required: true, schema: { type: string, enum: [pending, verified, unverified] } }
+      responses:
+        "200": { description: "User verification status updated." }
+        "403": { description: "Forbidden." }
+  /admin/report:
+    get:
+      tags: [Admin - User Management]
+      summary: List User Reports
+      security: [{"bearerAuth": []}]
+      description: Retrieves a list of reports submitted against users.
+      responses:
+        "200": { description: "A list of user reports." }
+    patch:
+      tags: [Admin - User Management]
+      summary: Mark Reports as Read
+      security: [{"bearerAuth": []}]
+      description: Marks all unread user reports as read.
+      responses:
+        "200": { description: "Reports marked as read." }
+        
+  # ADMIN - CONTENT MANAGEMENT
+  /page-content:
+    get:
+      tags: [Admin - Content Management]
+      summary: List all Page Contents
+      security: [{"bearerAuth": []}]
+      responses:
+        "200": { description: "A list of page content objects."}
+    post:
+      tags: [Admin - Content Management]
+      summary: Create a Page Content
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                page: { type: string, description: "The slug for the page URL."}
+                content: { type: string }
+                bannerImage: { type: string, format: binary }
+      responses:
+        "201": { description: "Page content created."}
+    patch:
+      tags: [Admin - Content Management]
+      summary: Update a Page Content
+      security: [{"bearerAuth": []}]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                id: { type: string }
+                title: { type: string }
+                page: { type: string, description: "The slug for the page URL."}
+                content: { type: string }
+                bannerImage: { type: string, format: binary }
+      responses:
+        "200": { description: "Page content updated."}
+  /page-content/{id}:
+    get:
+      tags: [Admin - Content Management]
+      summary: Get Page Content by ID
+      security: [{"bearerAuth": []}]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "A single page content object." }
+    delete:
+      tags: [Admin - Content Management]
+      summary: Delete Page Content by ID
+      security: [{"bearerAuth": []}]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string }}
+      responses:
+        "200": { description: "Page content deleted." }
+
+  # MISC
+  /user/send-waitlist-mail:
+    post:
+      tags: [Public Content (CMS)]
+      summary: Join Waitlist
+      description: Submits a user's email to the waitlist.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string, format: "email" }
+      responses:
+        "200": { description: "Mail sent successfully." }
+  /storage/upload:
+    post:
+      tags: [Media & Uploads]
+      summary: Generic Image Upload
+      description: A utility endpoint for uploading a single image.
+      requestBody:
+        content: { multipart/form-data: { schema: { type: object, properties: { imageFile: { type: string, format: binary }}}}}
+      responses:
+        "200": { description: "Image uploaded successfully."}
+  /storage/audio-upload:
+    post:
+      tags: [Media & Uploads]
+      summary: Generic Audio Upload
+      description: A utility endpoint for uploading a single audio file.
+      requestBody:
+        content: { multipart/form-data: { schema: { type: object, properties: { audioFile: { type: string, format: binary }}}}}
+      responses:
+        "200": { description: "Audio uploaded successfully."}
