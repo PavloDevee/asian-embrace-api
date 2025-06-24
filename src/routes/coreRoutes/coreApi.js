@@ -23,6 +23,7 @@ const userSubscriptionController = require("@/controllers/appControllers/userSub
 const planController = require("@/controllers/appControllers/planController");
 const chatController = require("@/controllers/chatController");
 const { handleImageUpload } = require("@/controllers/imageStorageController");
+const { handleAudioUpload } = require("@/controllers/audioStorageController");
 
 // Image Storage Configuration
 const storage = multer.memoryStorage();
@@ -33,11 +34,73 @@ const imageFileFilter = (req, file, cb) => {
     cb(new Error("Not an image! Please upload only images."), false);
   }
 };
+
+// Media File Filter for chat attachments (images, videos, audio)
+const mediaFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/avif",
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+    "video/x-msvideo",
+    "audio/webm",
+    "audio/mp3",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/m4a",
+    "audio/aac",
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Unsupported file type for chat attachment."), false);
+  }
+};
+
 const upload = multer({
   storage: storage,
   fileFilter: imageFileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10 MB limit for uploads
+  },
+});
+
+const uploadMedia = multer({
+  storage: storage,
+  fileFilter: mediaFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50 MB limit for media files
+  },
+});
+
+// Audio Storage Configuration
+const audioFileFilter = (req, file, cb) => {
+  const allowedMimeTypes = [
+    "audio/webm",
+    "audio/mp3",
+    "audio/mpeg",
+    "audio/wav",
+    "audio/ogg",
+    "audio/m4a",
+    "audio/aac",
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not an audio file! Please upload only audio files."), false);
+  }
+};
+const audioUpload = multer({
+  storage: storage,
+  fileFilter: audioFileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB limit for audio uploads
   },
 });
 
@@ -206,6 +269,9 @@ router
   .route("/user/block")
   .get(adminAuth.isValidAuthToken, catchErrors(blockController.list));
 router
+  .route("/user/block/:blockedUserId")
+  .delete(adminAuth.isValidAuthToken, catchErrors(blockController.remove));
+router
   .route("/user/block-list")
   .get(
     adminAuth.isValidAuthToken,
@@ -314,13 +380,11 @@ router
 
 // //_______________________________ Chat attachment_________________________________________
 
-router
-  .route("/chat/attachment")
-  .post(
-    adminAuth.isValidAuthToken,
-    singleStorageUpload({ entity: "chatAttachment", fieldName: "photo" }),
-    catchErrors(chatController.upload)
-  );
+router.route("/chat/attachment").post(
+  adminAuth.isValidAuthToken,
+  uploadMedia.single("file"), // Use media multer configuration for Supabase uploads
+  catchErrors(chatController.upload)
+);
 router
   .route("/chat/attachment/:recipientId")
   .get(adminAuth.isValidAuthToken, catchErrors(chatController.getAttachment));
@@ -356,6 +420,14 @@ router.post(
   catchErrors(handleImageUpload)
 );
 
+// //_______________________________ Audio Storage Routes _______________________________
+
+router.post(
+  "/storage/audio-upload",
+  audioUpload.single("audioFile"),
+  catchErrors(handleAudioUpload)
+);
+
 // Middleware to handle multer errors specifically
 router.use((error, req, res, next) => {
   if (error instanceof multer.MulterError) {
@@ -372,7 +444,12 @@ router.use((error, req, res, next) => {
     if (error.message === "Not an image! Please upload only images.") {
       return res.status(400).json({ success: false, message: error.message });
     }
-    console.error("Unhandled error in image storage route:", error);
+    if (
+      error.message === "Not an audio file! Please upload only audio files."
+    ) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error("Unhandled error in storage route:", error);
     return res
       .status(500)
       .json({ success: false, message: "An unexpected error occurred." });

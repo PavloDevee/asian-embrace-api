@@ -84,6 +84,7 @@ chatController.getToken = async (req, res) => {
     console.error("Error generating Zego token:", error);
     // Check if error has a specific structure from generateToken04
     if (error && error.errorCode) {
+
       return res
         .status(400)
         .json({
@@ -98,6 +99,7 @@ chatController.getToken = async (req, res) => {
         success: false,
         error: error.message || "Failed to generate token",
       });
+
   }
 };
 
@@ -203,6 +205,7 @@ function generateToken04(
   return "04" + Buffer.from(buf).toString("base64");
 }
 
+
 chatController.upload = async (req, res) => {
   try {
     if (req.body.photo) {
@@ -233,6 +236,7 @@ chatController.upload = async (req, res) => {
     return res.status(200).json({
       success: false,
       message: "something went wrong",
+
     });
   }
 };
@@ -310,6 +314,7 @@ chatController.delete = async (req, res) => {
       return sendResponse(res, 404, false, null, "No document found");
     }
 
+
     // Optional: Delete physical file from server
     // attachmentPath = "uploads/chatAttachment/xxx.jpg", але файл знаходиться в "src/public/uploads/..."
     const fullPath = path.join(__dirname, "..", "public", attachmentPath);
@@ -376,6 +381,7 @@ chatController.getVideoSDKToken = async (req, res) => {
       error: "Failed to generate VideoSDK token",
       details: error.message,
     });
+
   }
 };
 
