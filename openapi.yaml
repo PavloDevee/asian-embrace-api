@@ -51,19 +51,19 @@ components:
       type: object
       required: [name, email, password, gender, dob]
       properties:
-        name: { type: string, example: "Jane Doe" }
-        email: { type: string, format: email, example: "jane.doe@example.com" }
+        name: { type: string, example: "Mei Lin" }
+        email: { type: string, format: email, example: "mei.lin@example.com" }
         password: { type: string, format: password, example: "strongpassword123", description: "Must be at least 8 characters and contain one special character." }
         gender: { type: string, enum: [male, female] }
-        dob: { type: string, format: date, example: "1990-01-15", description: "User must be at least 18 years old."}
-        countryCode: { type: string, example: "+1" }
+        dob: { type: string, format: date, example: "1995-05-10", description: "User must be at least 18 years old."}
+        countryCode: { type: string, example: "+86" }
         referralCode: { type: string }
         confirmAge: { type: boolean }
     LoginRequest:
       type: object
       required: [email, password]
       properties:
-        email: { type: string, format: email, example: "jane.doe@example.com" }
+        email: { type: string, format: email, example: "kenji.tanaka@example.com" }
         password: { type: string, format: password, example: "strongpassword123" }
     PasswordChangeRequest:
       type: object
@@ -83,13 +83,13 @@ components:
       type: object
       properties:
         _id: { type: string, example: "60c72b2f9b1d8e001f8e4c6a" }
-        name: { type: string, example: "Jane Doe" }
-        email: { type: string, format: email, example: "jane.doe@example.com" }
+        name: { type: string, example: "Mei Lin" }
+        email: { type: string, format: email, example: "mei.lin@example.com" }
         gender: { type: string, enum: [male, female] }
         photo: { type: string, format: uri, example: "https://.../photo.jpg" }
-        country: { type: string, example: "USA" }
-        city: { type: string, example: "New York" }
-        isProfileComplete: { type: boolean }
+        country: { type: string, example: "China" }
+        city: { type: string, example: "Shanghai" }
+        isProfileComplete: { type: boolean, example: false }
         isPlanPurchase: { type: boolean }
         isVerified: { type: string, enum: [pending, verified, unverified]}
         height: 
@@ -110,7 +110,7 @@ components:
       properties:
         _id: { type: string }
         type: { type: string, enum: [rose, view, like, chat, comment] }
-        message: { type: string, example: "John Doe liked your post." }
+        message: { type: string, example: "Kenji Tanaka sent you a like!" }
         isRead: { type: boolean }
         created: { type: string, format: date-time }
 
@@ -162,8 +162,37 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/RegisterRequest" }
       responses:
-        "200": { description: "Successful registration", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
-        "400": { description: "Bad Request (e.g., email already exists)", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Successful registration"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+              example:
+                success: true
+                message: "Welcome to Asian Embrace! Please check your email to verify your account."
+                result:
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxYjVjMjYyYjJlYjJkMGUyYjJlYjJkMiJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  user:
+                    _id: "61b5c262b2eb2d0e2b2eb2d2"
+                    name: "Mei Lin"
+                    email: "mei.lin@example.com"
+                    gender: "female"
+                    photo: null
+                    country: "China"
+                    city: "Shanghai"
+                    isProfileComplete: false
+                    isPlanPurchase: false
+                    isVerified: "pending"
+                    height: null
+                    weight: null
+        "400":
+          description: "Bad Request (e.g., email already exists)"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "An account with this email already exists."
   /login:
     post:
       tags: [Authentication]
@@ -174,8 +203,43 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/LoginRequest" }
       responses:
-        "200": { description: "Successful login", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
-        "401": { description: "Unauthorized (Invalid credentials)", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Successful login"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+              example:
+                success: true
+                message: "Login successful"
+                result:
+                  token: "eyJhbGciOiJIJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzcyYjJmOWI..."
+                  user:
+                    _id: "60c72b2f9b1d8e001f8e4c6b"
+                    name: "Kenji Tanaka"
+                    email: "kenji.tanaka@example.com"
+                    gender: "male"
+                    photo: "https://example.com/images/kenji_tanaka.jpg"
+                    country: "Japan"
+                    city: "Tokyo"
+                    isProfileComplete: true
+                    isPlanPurchase: true
+                    isVerified: "verified"
+                    height:
+                      value: 175
+                      unit: "cm"
+                      displayValue: "175 cm"
+                    weight:
+                      value: 70
+                      unit: "kg"
+                      displayValue: "70 kg"
+        "401":
+          description: "Unauthorized (Invalid credentials)"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Invalid credentials."
   /user/email-verify:
     post:
       tags: [Authentication]
@@ -192,8 +256,37 @@ paths:
                 userId: { type: string, description: "The ID of the user being verified." }
                 otp: { type: string, example: "123456" }
       responses:
-        "200": { description: "Email verified successfully, returns auth token.", content: { "application/json": { schema: { $ref: "#/components/schemas/AuthResponse" }}}}
-        "403": { description: "Invalid OTP.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Email verified successfully, returns auth token."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+              example:
+                success: true
+                message: "Email verified successfully"
+                result:
+                  token: "eyJhbGciOiJIJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYzcyYjJmOWI..."
+                  user:
+                    _id: "61b5c262b2eb2d0e2b2eb2d2"
+                    name: "Mei Lin"
+                    email: "mei.lin@example.com"
+                    gender: "female"
+                    photo: null
+                    country: "China"
+                    city: "Shanghai"
+                    isProfileComplete: false
+                    isPlanPurchase: false
+                    isVerified: "verified"
+                    height: null
+                    weight: null
+        "403":
+          description: "Invalid OTP."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Invalid OTP."
   /user/resend-otp-email:
     post:
       tags: [Authentication]
@@ -209,7 +302,14 @@ paths:
               properties:
                 userId: { type: string, description: "The ID of the user who needs a new OTP." }
       responses:
-        "200": { description: "Email verification sent.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "Email verification sent."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Email verification sent."
   /logout:
     get:
       tags: [Authentication]
@@ -217,7 +317,14 @@ paths:
       security: [{"bearerAuth": []}]
       description: Invalidates the user's session on the server-side if session-based persistence is used.
       responses:
-        "200": { description: "Logout successful", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "Logout successful"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Logout successful."
   /forgetpassword:
     post:
       tags: [Authentication]
@@ -229,9 +336,16 @@ paths:
           application/json:
             schema:
               type: object
-              properties: { email: { type: string, format: email } }
+              properties: { email: { type: string, format: email, example: "mei.lin@example.com" } }
       responses:
-        "200": { description: "OTP sent successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "OTP sent successfully"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "OTP sent successfully."
   /user/resend-otp:
     post:
       tags: [Authentication]
@@ -246,7 +360,14 @@ paths:
               properties:
                 userId: { type: string, description: "The ID of the user who needs a new OTP." }
       responses:
-        "200": { description: "Email verification sent.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "Email verification sent."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Email verification sent."
   /check-otp:
     post:
       tags: [Authentication]
@@ -258,11 +379,25 @@ paths:
             schema:
               type: object
               properties:
-                email: { type: string, format: email }
+                email: { type: string, format: email, example: "mei.lin@example.com" }
                 otp: { type: string, example: "123456" }
       responses:
-        "200": { description: "OTP is valid", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
-        "400": { description: "Invalid OTP", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "OTP is valid"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "OTP is valid."
+        "400":
+          description: "Invalid OTP"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Invalid OTP."
   /resetpassword:
     post:
       tags: [Authentication]
@@ -274,11 +409,18 @@ paths:
             schema:
               type: object
               properties:
-                email: { type: string, format: email }
+                email: { type: string, format: email, example: "mei.lin@example.com" }
                 otp: { type: string, example: "123456" }
                 password: { type: string, format: password }
       responses:
-        "200": { description: "Password reset successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "Password reset successfully"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Password reset successfully."
 
   # USER ACCOUNT MANAGEMENT
   /user/me:
@@ -288,8 +430,38 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves the complete profile information for the currently authenticated user.
       responses:
-        "200": { description: "Current user's profile data.", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
-        "404": { description: "User not found.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Current user's profile data."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example:
+                _id: "60c72b2f9b1d8e001f8e4c6a"
+                name: "Mei Lin"
+                email: "mei.lin@example.com"
+                gender: "female"
+                photo: "https://example.com/images/mei_lin.jpg"
+                country: "China"
+                city: "Shanghai"
+                isProfileComplete: true
+                isPlanPurchase: true
+                isVerified: "verified"
+                height:
+                  value: 165
+                  unit: "cm"
+                  displayValue: "165 cm"
+                weight:
+                  value: 55
+                  unit: "kg"
+                  displayValue: "55 kg"
+        "404":
+          description: "User not found."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "User not found."
     patch:
       tags: [User Account]
       summary: Update Current User's Profile
@@ -307,7 +479,30 @@ paths:
                 country: { type: string }
                 interests: { type: array, items: {type: string} }
       responses:
-        "200": { description: "Profile updated successfully", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+        "200":
+          description: "Profile updated successfully"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example:
+                _id: "60c72b2f9b1d8e001f8e4c6a"
+                name: "Mei Lin"
+                email: "mei.lin@example.com"
+                gender: "female"
+                photo: "https://example.com/images/mei_lin.jpg"
+                country: "South Korea"
+                city: "Seoul"
+                isProfileComplete: true
+                isPlanPurchase: true
+                isVerified: "verified"
+                height:
+                  value: 165
+                  unit: "cm"
+                  displayValue: "165 cm"
+                weight:
+                  value: 55
+                  unit: "kg"
+                  displayValue: "55 kg"
   /user/change-password:
     patch:
       tags: [User Account]
@@ -320,8 +515,22 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/PasswordChangeRequest" }
       responses:
-        "200": { description: "Password changed successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
-        "401": { description: "Incorrect old password.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Password changed successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Password changed successfully."
+        "401":
+          description: "Incorrect old password."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Incorrect old password."
   /user/change-email:
     patch:
       tags: [User Account]
@@ -334,8 +543,22 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/EmailChangeRequest" }
       responses:
-        "200": { description: "Email changed successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
-        "401": { description: "Incorrect password.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Email changed successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Email changed successfully."
+        "401":
+          description: "Incorrect password."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Incorrect password."
   /user/match-password/{password}:
     get:
       tags: [User Account]
@@ -349,8 +572,22 @@ paths:
           schema:
             type: string
       responses:
-        "200": { description: "Password matches.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
-        "400": { description: "Password does not match.", content: { "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" }}}}
+        "200":
+          description: "Password matches."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Password matches."
+        "400":
+          description: "Password does not match."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Password does not match."
 
   # USER PROFILE
   /user/complete-profile:
@@ -360,7 +597,14 @@ paths:
       security: [{"bearerAuth": []}]
       description: A specific endpoint to set the `isProfileComplete` flag to true, typically after finishing the onboarding flow.
       responses:
-        "200": { description: "Profile marked as complete.", content: { "application/json": { schema: { $ref: "#/components/schemas/SuccessResponse" }}}}
+        "200":
+          description: "Profile marked as complete."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Your profile is now complete and visible to others!"
   /user/upload-verify-image:
     patch:
       tags: [User Profile]
@@ -375,7 +619,30 @@ paths:
               properties:
                 file: { type: string, format: binary }
       responses:
-        "200": { description: "Verification image uploaded successfully.", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
+        "200":
+          description: "Verification image uploaded successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example:
+                _id: "60c72b2f9b1d8e001f8e4c6a"
+                name: "Mei Lin"
+                email: "mei.lin@example.com"
+                gender: "female"
+                photo: "https://example.com/images/mei_lin.jpg"
+                country: "China"
+                city: "Shanghai"
+                isProfileComplete: true
+                isPlanPurchase: true
+                isVerified: "pending"
+                height:
+                  value: 165
+                  unit: "cm"
+                  displayValue: "165 cm"
+                weight:
+                  value: 55
+                  unit: "kg"
+                  displayValue: "55 kg"
 
   # USER DISCOVERY & INTERACTIONS
   /user/discover-list:
@@ -389,7 +656,36 @@ paths:
         - { name: limit, in: query, schema: { type: integer, default: 20 } }
         - { name: gender, in: query, schema: { type: string, enum: [male, female] } }
       responses:
-        "200": { description: "A paginated list of users.", content: { "application/json": { schema: { $ref: "#/components/schemas/PaginatedUsers" }}}}
+        "200":
+          description: "A paginated list of users."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedUsers" }
+              example:
+                success: true
+                result:
+                  - _id: "60c72b2f9b1d8e001f8e4c6b"
+                    name: "Kenji Tanaka"
+                    email: "kenji.tanaka@example.com"
+                    gender: "male"
+                    photo: "https://example.com/images/kenji_tanaka.jpg"
+                    country: "Japan"
+                    city: "Tokyo"
+                    isProfileComplete: true
+                    isPlanPurchase: false
+                    isVerified: "verified"
+                    height:
+                      value: 175
+                      unit: "cm"
+                      displayValue: "175 cm"
+                    weight:
+                      value: 70
+                      unit: "kg"
+                      displayValue: "70 kg"
+                pagination:
+                  page: 1
+                  pages: 10
+                  count: 100
   /user/get/{id}:
     get:
       tags: [User Discovery & Interactions]
@@ -399,8 +695,38 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }, description: "The ID of the user to retrieve." }
       responses:
-        "200": { description: "User data", content: { "application/json": { schema: { $ref: "#/components/schemas/User" }}}}
-        "404": { description: "User not found" }
+        "200":
+          description: "User data"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example:
+                _id: "60c72b2f9b1d8e001f8e4c6b"
+                name: "Kenji Tanaka"
+                email: "kenji.tanaka@example.com"
+                gender: "male"
+                photo: "https://example.com/images/kenji_tanaka.jpg"
+                country: "Japan"
+                city: "Tokyo"
+                isProfileComplete: true
+                isPlanPurchase: true
+                isVerified: "verified"
+                height:
+                  value: 175
+                  unit: "cm"
+                  displayValue: "175 cm"
+                weight:
+                  value: 70
+                  unit: "kg"
+                  displayValue: "70 kg"
+        "404":
+          description: "User not found"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "User not found"
   /user/favourite:
     post:
       tags: [User Discovery & Interactions]
@@ -412,14 +738,42 @@ paths:
           application/json:
             schema: { type: object, properties: { user_id_to_favourite: { type: string, description: "The _id of the user to favourite."}}}
       responses:
-        "201": { description: "User added to favourites." }
-        "409": { description: "Conflict (user already in favourites)." }
+        "201":
+          description: "User added to favourites."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Kenji Tanaka added to favourites."
+        "409":
+          description: "Conflict (user already in favourites)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "User already in favourites."
     get:
       tags: [User Discovery & Interactions]
       summary: Get Favourited Users List
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "An array of favourited user objects." }
+        "200":
+          description: "An array of favourited user objects."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedUsers" }
+              example:
+                success: true
+                result:
+                  - _id: "60c72b2f9b1d8e001f8e4c6b"
+                    name: "Kenji Tanaka"
+                    email: "kenji.tanaka@example.com"
+                pagination:
+                  page: 1
+                  pages: 1
+                  count: 1
   /user/block:
     post:
       tags: [User Discovery & Interactions]
@@ -431,13 +785,34 @@ paths:
           application/json:
             schema: { type: object, properties: { user_id_to_block: { type: string, description: "The _id of the user to block."}}}
       responses:
-        "201": { description: "User blocked successfully." }
+        "201":
+          description: "User blocked successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "User blocked successfully."
     get:
       tags: [User Discovery & Interactions]
       summary: Get Blocked Users List
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "An array of blocked user objects." }
+        "200":
+          description: "An array of blocked user objects."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedUsers" }
+              example:
+                success: true
+                result:
+                  - _id: "60c72b2f9b1d8e001f8e4c6c"
+                    name: "Blocked User"
+                    email: "blocked@example.com"
+                pagination:
+                  page: 1
+                  pages: 1
+                  count: 1
   /user/block-list:
     get:
       tags: [User Discovery & Interactions]
@@ -445,7 +820,17 @@ paths:
       security: [{"bearerAuth": []}]
       description: Gets a list of users the current user has blocked, and users who have blocked the current user.
       responses:
-        "200": { description: "A list of all associated blocked user objects." }
+        "200":
+          description: "A list of all associated blocked user objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+              example:
+                - _id: "60c72b2f9b1d8e001f8e4c6d"
+                  name: "Another Blocked User"
   /user/report:
     post:
       tags: [User Discovery & Interactions]
@@ -455,9 +840,16 @@ paths:
         required: true
         content:
           application/json:
-            schema: { type: object, properties: { user_id_to_report: { type: string }, reason: { type: string, example: "Inappropriate photos"}}}
+            schema: { type: object, properties: { user_id_to_report: { type: string }, reason: { type: string, example: "Profile photo is not a real person."}}}
       responses:
-        "201": { description: "Report submitted successfully." }
+        "201":
+          description: "Report submitted successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Thank you for your report. We will review it shortly."
   /user/rose:
     post:
       tags: [User Discovery & Interactions]
@@ -473,7 +865,14 @@ paths:
               properties:
                 receivedBy: { type: string, description: "The _id of the user to receive the rose."}
       responses:
-        "200": { description: "Rose sent successfully" }
+        "200":
+          description: "Rose sent successfully"
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Rose sent successfully"
 
   # MESSAGING & REAL-TIME
   /get-token:
@@ -485,7 +884,18 @@ paths:
       requestBody:
         content: { application/json: { schema: { type: object, properties: { userId: { type: string }}}}}
       responses:
-        "200": { description: "ZegoCloud token", content: { "application/json": { schema: { type: object, properties: { success: { type: boolean }, token: { type: string } } } } } }
+        "200":
+          description: "ZegoCloud token"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  token: { type: string }
+              example:
+                success: true
+                token: "04...longtokenstring"
 
   # NOTIFICATIONS (User Account)
   /user/notification:
@@ -494,21 +904,53 @@ paths:
       summary: Get User Notifications
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "An array of notification objects.", content: { "application/json": { schema: { type: array, items: { $ref: "#/components/schemas/Notification" }}}}}
+        "200":
+          description: "An array of notification objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Notification" }
+              example:
+                - _id: "60c72b2f9b1d8e001f8e4d8b"
+                  type: "like"
+                  message: "Kenji Tanaka sent you a like!"
+                  isRead: false
+                  created: "2023-05-18T12:00:00.000Z"
+                - _id: "60c72b2f9b1d8e001f8e4d8c"
+                  type: "rose"
+                  message: "Yuki sent you a rose."
+                  isRead: true
+                  created: "2023-05-18T11:00:00.000Z"
   /user/notification-count:
     get:
       tags: [User Account]
       summary: Get Unread Notification Count
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "Count of unread notifications.", content: { "application/json": { schema: { type: object, properties: { count: { type: integer, example: 5 } } }}}}
+        "200":
+          description: "Count of unread notifications."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { count: { type: integer, example: 5 } }
+              example:
+                count: 3
   /user/notification-read:
     get:
       tags: [User Account]
       summary: Mark All Notifications as Read
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "Notifications marked as read." }
+        "200":
+          description: "Notifications marked as read."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Notifications marked as read."
   /user/notification-read/{id}:
     get:
       tags: [User Account]
@@ -521,7 +963,14 @@ paths:
           schema:
             type: string
       responses:
-        "200": { description: "Notification marked as read." }
+        "200":
+          description: "Notification marked as read."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Notification marked as read."
 
   # MEDIA & UPLOADS
   /user/upload-photo:
@@ -532,7 +981,16 @@ paths:
       requestBody:
         content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }}}}}
       responses:
-        "200": { description: "Photo uploaded successfully.", content: { "application/json": { schema: { type: object, properties: { url: { type: string, format: uri } }}}}}
+        "200":
+          description: "Photo uploaded successfully."
+          content:
+            application/json:
+              schema: { type: object, properties: { url: { type: string, format: uri } }}
+              example:
+                success: true
+                data:
+                  imageUrl: "https://embrace-cdn.com/user-photos/mei-lin-123.webp"
+                  fileName: "mei-lin-123.webp"
   /user/change-image:
     patch:
       tags: [Media & Uploads]
@@ -548,7 +1006,14 @@ paths:
               properties:
                 imagePath: { type: string, format: "uri", description: "The URL of the gallery image to set as profile photo."}
       responses:
-        "200": { description: "Profile photo updated successfully."}
+        "200":
+          description: "Profile photo updated successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Profile photo updated successfully."
   /user/upload-images:
     patch:
       tags: [Media & Uploads]
@@ -557,7 +1022,14 @@ paths:
       requestBody:
         content: { multipart/form-data: { schema: { type: object, properties: { images: { type: array, items: { type: string, format: binary }}, video: { type: string, format: binary }}}}}
       responses:
-        "200": { description: "Media uploaded successfully." }
+        "200":
+          description: "Media uploaded successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Media uploaded successfully."
   /user/delete-image:
     patch:
       tags: [Media & Uploads]
@@ -566,7 +1038,14 @@ paths:
       requestBody:
         content: { application/json: { schema: { type: object, properties: { imageUrl: { type: string, format: uri }}}}}
       responses:
-        "200": { description: "Image deleted successfully." }
+        "200":
+          description: "Image deleted successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Image deleted successfully."
   /chat/attachment:
     post:
       tags: [Media & Uploads]
@@ -575,7 +1054,15 @@ paths:
       requestBody:
         content: { multipart/form-data: { schema: { type: object, properties: { file: { type: string, format: binary }}}}}
       responses:
-        "201": { description: "Attachment uploaded successfully.", content: { "application/json": { schema: { type: object, properties: { url: { type: string, format: uri } }}}}}
+        "201":
+          description: "Attachment uploaded successfully."
+          content:
+            application/json:
+              schema: { type: object, properties: { url: { type: string, format: uri } }}
+              example:
+                success: true
+                data: "https://embrace-cdn.com/chat-attachments/attachment-123.jpg"
+                message: "Successfully uploaded attachment"
     delete:
       tags: [Media & Uploads]
       summary: Delete a Chat Attachment
@@ -590,7 +1077,14 @@ paths:
                 recipientId: { type: string }
                 attachment: { type: string, format: "uri" }
       responses:
-        "200": { description: "Attachment deleted successfully." }
+        "200":
+          description: "Attachment deleted successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Attachment deleted successfully."
   /chat/attachment/{recipientId}:
     get:
       tags: [Media & Uploads]
@@ -604,7 +1098,30 @@ paths:
           schema:
             type: string
       responses:
-        "200": { description: "A list of attachments."}
+        "200":
+          description: "A list of attachments."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                  videos:
+                    type: array
+                    items:
+                      type: object
+              example:
+                images:
+                  - _id: "61c1..."
+                    attechment: "https://embrace-cdn.com/chat-attachments/image1.jpg"
+                    attechment_type: "image"
+                videos:
+                  - _id: "61c2..."
+                    attechment: "https://embrace-cdn.com/chat-attachments/video1.mp4"
+                    attechment_type: "video"
 
   # SUBSCRIPTIONS & PAYMENTS
   /user/plan-purchase:
@@ -618,14 +1135,35 @@ paths:
           application/json:
             schema: { type: object, properties: { plan_id: { type: string, description: "The _id of the plan being purchased."}}}
       responses:
-        "201": { description: "Subscription created successfully." }
-        "400": { description: "Bad Request (e.g., invalid plan_id)." }
+        "201":
+          description: "Subscription created successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Your premium subscription is now active!"
+        "400":
+          description: "Bad Request (e.g., invalid plan_id)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Invalid plan ID."
     delete:
       tags: [Subscriptions & Payments]
       summary: Cancel a Plan
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "Subscription cancelled successfully." }
+        "200":
+          description: "Subscription cancelled successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Your subscription has been cancelled."
   /user/plan-purchase/{userId}:
     get:
       tags: [Subscriptions & Payments]
@@ -634,14 +1172,43 @@ paths:
       parameters:
         - { name: userId, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "The user's subscription object." }
-        "404": { description: "Subscription not found for this user." }
+        "200":
+          description: "The user's subscription object."
+          content:
+            application/json:
+              schema:
+                type: object 
+              example:
+                _id: "sub_123"
+                planId: "premium_monthly"
+                userId: "60c72b2f9b1d8e001f8e4c6a"
+                status: "purchased"
+        "404":
+          description: "Subscription not found for this user."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Subscription not found."
   /plan-details:
     get:
       tags: [Subscriptions & Payments]
       summary: Get Available Subscription Plans
       responses:
-        "200": { description: "A list of available subscription plan objects." }
+        "200":
+          description: "A list of available subscription plan objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - _id: "premium_monthly"
+                  name: "Premium Monthly"
+                  price: 19.99
+                  description: "Unlimited messaging and access to all profiles."
   /contact-us:
     get:
       tags: [Public Content (CMS)]
@@ -649,7 +1216,21 @@ paths:
       security: [{"bearerAuth": []}]
       description: (Admin) Retrieves a list of all submissions from the "Contact Us" form.
       responses:
-        "200": { description: "A list of contact us submissions." }
+        "200":
+          description: "A list of contact us submissions."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - _id: "contact_123"
+                  name: "Yuki"
+                  email: "yuki@example.com"
+                  message: "I'm having trouble uploading my verification photo. Can you help?"
+                  isRead: false
+                  created: "2023-05-18T10:00:00.000Z"
     post:
       tags: [Public Content (CMS)]
       summary: Submit Contact Us Form
@@ -665,13 +1246,27 @@ paths:
                 email: { type: string, format: "email" }
                 message: { type: string }
       responses:
-        "200": { description: "Message submitted successfully." }
+        "200":
+          description: "Message submitted successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Thank you for your message. Our team will get back to you shortly."
     patch:
       tags: [Admin - General]
       summary: Mark all Contact Us submissions as read
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "All submissions marked as read." }
+        "200":
+          description: "All submissions marked as read."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "All submissions marked as read."
 
   # PUBLIC CONTENT (CMS)
   /interest:
@@ -680,13 +1275,43 @@ paths:
       summary: Get List of Interests
       description: Retrieves the master list of all available interests users can select.
       responses:
-        "200": { description: "An array of interest strings." }
+        "200":
+          description: "An array of interest strings."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - "K-Pop"
+                - "Anime"
+                - "Mahjong"
+                - "Calligraphy"
+                - "Tea Ceremony"
+                - "Traveling Asia"
   /blog:
     get:
       tags: [Public Content (CMS)]
       summary: List Blog Posts
       responses:
-        "200": { description: "A paginated list of blog posts." }
+        "200":
+          description: "A paginated list of blog posts."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                success: true
+                result:
+                  - _id: "blog_123"
+                    title: "5 Tips for a Great First Date in Tokyo"
+                    slug: "5-tips-first-date-tokyo"
+                    shortContent: "Planning a first date in a city as vibrant as Tokyo can be exciting..."
+                pagination:
+                  page: 1
+                  pages: 3
+                  count: 30
     post:
       tags: [Admin - Content Management]
       summary: Create a Blog Post (Admin)
@@ -702,8 +1327,22 @@ paths:
                 content: { type: string }
                 bannerImage: { type: string, format: binary }
       responses:
-        "201": { description: "Blog post created." }
-        "403": { description: "Forbidden." }
+        "201":
+          description: "Blog post created."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Blog post created."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
     patch:
       tags: [Admin - Content Management]
       summary: Update a Blog Post (Admin)
@@ -720,8 +1359,22 @@ paths:
                 content: { type: string }
                 bannerImage: { type: string, format: binary }
       responses:
-        "200": { description: "Blog post updated." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "Blog post updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Blog post updated."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /blog/{id}:
     get:
       tags: [Public Content (CMS)]
@@ -729,8 +1382,26 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "A single blog post object." }
-        "404": { description: "Blog post not found." }
+        "200":
+          description: "A single blog post object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                _id: "blog_123"
+                title: "5 Tips for a Great First Date in Tokyo"
+                slug: "5-tips-first-date-tokyo"
+                content: "Full content of the blog post about planning a date in Tokyo..."
+                bannerImage: "https://embrace-cdn.com/blog/tokyo-date.jpg"
+        "404":
+          description: "Blog post not found."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Blog post not found."
     delete:
       tags: [Admin - Content Management]
       summary: Delete a Blog Post (Admin)
@@ -739,8 +1410,22 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "Blog post deleted." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "Blog post deleted."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Blog post deleted."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /blog/read/{slug}:
     get:
       tags: [Public Content (CMS)]
@@ -748,14 +1433,43 @@ paths:
       parameters:
         - { name: slug, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "A single blog post object." }
-        "404": { description: "Blog post not found." }
+        "200":
+          description: "A single blog post object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                _id: "blog_123"
+                title: "5 Tips for a Great First Date in Tokyo"
+                slug: "5-tips-first-date-tokyo"
+                content: "Full content of the blog post about planning a date in Tokyo..."
+                bannerImage: "https://embrace-cdn.com/blog/tokyo-date.jpg"
+        "404":
+          description: "Blog post not found."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Blog post not found."
   /faq:
     get:
       tags: [Public Content (CMS)]
       summary: Get all FAQs
       responses:
-        "200": { description: "A list of all FAQ objects."}
+        "200":
+          description: "A list of all FAQ objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - _id: "faq_1"
+                  question: "What are 'Roses' and how do I use them?"
+                  answer: "Roses are a special way to show someone you're very interested..."
     post:
       tags: [Admin - Content Management]
       summary: Create a FAQ
@@ -770,7 +1484,14 @@ paths:
                 question: { type: string }
                 answer: { type: string }
       responses:
-        "201": { description: "FAQ created."}
+        "201":
+          description: "FAQ created."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "FAQ created."
     patch:
       tags: [Admin - Content Management]
       summary: Update a FAQ
@@ -786,7 +1507,14 @@ paths:
                 question: { type: string }
                 answer: { type: string }
       responses:
-        "200": { description: "FAQ updated."}
+        "200":
+          description: "FAQ updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "FAQ updated."
     delete:
       tags: [Admin - Content Management]
       summary: Delete a FAQ
@@ -798,7 +1526,14 @@ paths:
           schema:
             type: string
       responses:
-        "200": { description: "FAQ deleted."}
+        "200":
+          description: "FAQ deleted."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "FAQ deleted."
   /page-content/read/{slug}:
     get:
       tags: [Public Content (CMS)]
@@ -806,8 +1541,25 @@ paths:
       parameters:
         - { name: slug, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "A single page content object." }
-        "404": { description: "Page content not found." }
+        "200":
+          description: "A single page content object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                _id: "page_1"
+                title: "About Us"
+                page: "about-us"
+                content: "This is the about us page content..."
+        "404":
+          description: "Page content not found."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Page content not found."
 
   # ADMIN - GENERAL
   /admin/dashboard:
@@ -817,8 +1569,23 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves aggregated data for the admin dashboard. Requires admin role.
       responses:
-        "200": { description: "Dashboard data object." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "Dashboard data object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                userCount: 1250
+                contactCount: 25
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/sidebar:
     get:
       tags: [Admin - General]
@@ -826,8 +1593,23 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves data for admin sidebar, such as notification counts for reports and contacts.
       responses:
-        "200": { description: "Sidebar data object." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "Sidebar data object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                reportCount: 10
+                contactCount: 5
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/profile:
     get:
       tags: [Admin - General]
@@ -835,7 +1617,16 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves the profile of the currently logged-in admin.
       responses:
-        "200": { description: "Admin profile data." }
+        "200":
+          description: "Admin profile data."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+              example:
+                _id: "admin_123"
+                name: "Admin User"
+                email: "admin@asianembrace.com"
+                role: "admin"
   /admin/profile/update:
     patch:
       tags: [Admin - General]
@@ -852,7 +1643,14 @@ paths:
                 email: { type: string, format: "email" }
                 password: { type: string, format: "password"}
       responses:
-        "200": { description: "Admin profile updated." }
+        "200":
+          description: "Admin profile updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Admin profile updated."
   /admin/profile/password:
     patch:
       tags: [Admin - General]
@@ -869,7 +1667,14 @@ paths:
                 password: { type: string, format: "password"}
                 passwordCheck: { type: string, format: "password"}
       responses:
-        "200": { description: "Admin password updated." }
+        "200":
+          description: "Admin password updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Admin password updated."
 
   # ADMIN - USER MANAGEMENT
   /admin/users/list:
@@ -879,8 +1684,28 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves a complete, paginated list of all users. Requires an admin role.
       responses:
-        "200": { description: "A list of all user objects.", content: { "application/json": { schema: { $ref: "#/components/schemas/PaginatedUsers" }}}}
-        "403": { description: "Forbidden." }
+        "200":
+          description: "A list of all user objects."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PaginatedUsers" }
+              example:
+                success: true
+                result:
+                  - _id: "60c72b2f9b1d8e001f8e4c6a"
+                    name: "Mei Lin"
+                pagination:
+                  page: 1
+                  pages: 25
+                  count: 250
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/users/delete/{id}:
     delete:
       tags: [Admin - User Management]
@@ -890,8 +1715,22 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }, description: "The ID of the user to delete." }
       responses:
-        "200": { description: "User deleted." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "User deleted."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "User deleted."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/status/{id}:
     patch:
       tags: [Admin - User Management]
@@ -909,8 +1748,22 @@ paths:
                 enabled:
                   type: boolean
       responses:
-        "200": { description: "User status updated." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "User status updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "User status updated."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/users/profile-verified/{id}:
     get:
       tags: [Admin - User Management]
@@ -921,8 +1774,22 @@ paths:
         - { name: id, in: path, required: true, schema: { type: string }}
         - { name: verified, in: query, required: true, schema: { type: string, enum: [pending, verified, unverified] } }
       responses:
-        "200": { description: "User verification status updated." }
-        "403": { description: "Forbidden." }
+        "200":
+          description: "User verification status updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "User verification status updated."
+        "403":
+          description: "Forbidden."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+              example:
+                success: false
+                message: "Forbidden."
   /admin/report:
     get:
       tags: [Admin - User Management]
@@ -930,14 +1797,33 @@ paths:
       security: [{"bearerAuth": []}]
       description: Retrieves a list of reports submitted against users.
       responses:
-        "200": { description: "A list of user reports." }
+        "200":
+          description: "A list of user reports."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - _id: "report_1"
+                  actionBy: "user_a"
+                  actionOn: "user_b"
+                  message: "Inappropriate content"
     patch:
       tags: [Admin - User Management]
       summary: Mark Reports as Read
       security: [{"bearerAuth": []}]
       description: Marks all unread user reports as read.
       responses:
-        "200": { description: "Reports marked as read." }
+        "200":
+          description: "Reports marked as read."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Reports marked as read."
         
   # ADMIN - CONTENT MANAGEMENT
   /page-content:
@@ -946,7 +1832,19 @@ paths:
       summary: List all Page Contents
       security: [{"bearerAuth": []}]
       responses:
-        "200": { description: "A list of page content objects."}
+        "200":
+          description: "A list of page content objects."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+              example:
+                - _id: "page_1"
+                  title: "About Us"
+                  page: "about-us"
+                  content: "This is the about us page content..."
     post:
       tags: [Admin - Content Management]
       summary: Create a Page Content
@@ -962,7 +1860,14 @@ paths:
                 content: { type: string }
                 bannerImage: { type: string, format: binary }
       responses:
-        "201": { description: "Page content created."}
+        "201":
+          description: "Page content created."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Page content created."
     patch:
       tags: [Admin - Content Management]
       summary: Update a Page Content
@@ -979,7 +1884,14 @@ paths:
                 content: { type: string }
                 bannerImage: { type: string, format: binary }
       responses:
-        "200": { description: "Page content updated."}
+        "200":
+          description: "Page content updated."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Page content updated."
   /page-content/{id}:
     get:
       tags: [Admin - Content Management]
@@ -988,7 +1900,17 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "A single page content object." }
+        "200":
+          description: "A single page content object."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                _id: "page_1"
+                title: "About Us"
+                page: "about-us"
+                content: "This is the about us page content..."
     delete:
       tags: [Admin - Content Management]
       summary: Delete Page Content by ID
@@ -996,7 +1918,14 @@ paths:
       parameters:
         - { name: id, in: path, required: true, schema: { type: string }}
       responses:
-        "200": { description: "Page content deleted." }
+        "200":
+          description: "Page content deleted."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "Page content deleted."
 
   # MISC
   /user/send-waitlist-mail:
@@ -1014,7 +1943,14 @@ paths:
                 name: { type: string }
                 email: { type: string, format: "email" }
       responses:
-        "200": { description: "Mail sent successfully." }
+        "200":
+          description: "Mail sent successfully."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessResponse" }
+              example:
+                success: true
+                message: "You've been added to the waitlist!"
   /storage/upload:
     post:
       tags: [Media & Uploads]
@@ -1023,7 +1959,18 @@ paths:
       requestBody:
         content: { multipart/form-data: { schema: { type: object, properties: { imageFile: { type: string, format: binary }}}}}
       responses:
-        "200": { description: "Image uploaded successfully."}
+        "200":
+          description: "Image uploaded successfully."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                success: true
+                message: "Image uploaded successfully."
+                data:
+                  imageUrl: "https://embrace-cdn.com/generic/image-123.webp"
+                  fileName: "image-123.webp"
   /storage/audio-upload:
     post:
       tags: [Media & Uploads]
@@ -1032,4 +1979,16 @@ paths:
       requestBody:
         content: { multipart/form-data: { schema: { type: object, properties: { audioFile: { type: string, format: binary }}}}}
       responses:
-        "200": { description: "Audio uploaded successfully."}
+        "200":
+          description: "Audio uploaded successfully."
+          content:
+            application/json:
+              schema:
+                type: object
+              example:
+                success: true
+                message: "Audio uploaded successfully."
+                data:
+                  audioUrl: "https://embrace-cdn.com/audio-profiles/profile-greeting.webm"
+                  fileName: "profile-greeting.webm"
+                  bucket: "audio-files"
