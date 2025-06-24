@@ -1,16 +1,12 @@
 openapi: 3.0.3
 info:
-  title: Asian Embrace API - Gold Standard
-  description: The definitive, comprehensive API documentation for the Asian Embrace platform. This document covers every endpoint, including authentication, user management, real-time messaging, video call signaling, payments, content management, and administrative functions.
-  version: "1.2.0"
-  contact:
-    name: API Support
-    email: dev-team@asianembrace.com
+  title: Asian Embrace API
+  description: The definitive, comprehensive API documentation for Asian Embrace. This document covers every endpoint, including authentication, user management, real-time messaging, video call signaling, payments, content management, and administrative functions.
 
 servers:
   - url: http://localhost:8888/api
     description: Local Development Server
-  - url: https://api.yourdomain.com/api
+  - url: https://asian-embrace-api-for-deployment.onrender.com/api
     description: Production Server
 
 tags:
