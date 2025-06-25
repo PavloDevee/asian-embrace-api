@@ -353,8 +353,9 @@ chatController.getVideoSDKToken = async (req, res) => {
 
   const payload = {
     apikey: API_KEY,
-    permissions: ["allow_join"], // Permissions for joining meetings
+    permissions: ["allow_join", "allow_mod"], // allow_mod критично важливий!
     version: 2,
+    iat: Math.floor(Date.now() / 1000),
   };
 
   try {
