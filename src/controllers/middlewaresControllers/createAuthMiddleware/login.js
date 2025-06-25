@@ -10,7 +10,7 @@ const { sendResponse } = require('@/helpers');
 const login = async (req, res, { userModel }) => {
   const UserPasswordModel = mongoose.model(userModel + 'Password');
   const UserModel = mongoose.model(userModel);
-  const { email, password, type, isRole } = req.body;
+  const { email, password, type, isRole, name } = req.body;
 
   // await UserModel.updateMany({ removed: false }, { $set: { emailVerified: true } });
 
@@ -19,10 +19,11 @@ const login = async (req, res, { userModel }) => {
     const objectSchema = Joi.object({
       email: Joi.string()
         .email({ tlds: { allow: true } })
-        .required()
+        .required(),
+      name: Joi.string().required()
     });
 
-    const { error, value } = objectSchema.validate({ email });
+    const { error, value } = objectSchema.validate({ email, name });
     if (error) {
       return sendResponse(res, 400, false, null, 'Invalid/Missing credentials.');
     }
@@ -42,14 +43,22 @@ const login = async (req, res, { userModel }) => {
 
   }
 
-  const user = await UserModel.findOne({ email: email, removed: false, emailVerified: true });
+  const user = await UserModel.findOne({ email: email, removed: false });
 
   if (!user) {
     if (type == 'google') {
-      return sendResponse(res, 200, false, null, 'No account with this email has been registered.');
+      return sendResponse(res, 200, false, {
+        needsRegistration: true,
+        email: email,
+        name: name
+      }, 'New user. Please complete registration.');
     } else {
       return sendResponse(res, 404, false, null, 'No account with this email has been registered.');
     }
+  }
+
+  if(!user.emailVerified){
+    return sendResponse(res, 404, false, {emailVerified: false}, 'No account with this email has been registered.');
   }
 
   if (isRole) {

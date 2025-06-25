@@ -16,7 +16,7 @@ const create = async (userModel, req, res) => {
 		const { details } = error;
 		return sendResponse(res, 400, false, null, details[0]?.message);
 	}
-	let { email, password, name, gender, dob, referralCode, type } = value;
+	let { email, password, name, gender, dob, referralCode, type, emailVerified } = value;
 
 
 	const existingUser = await User.findOne({
@@ -53,7 +53,7 @@ const create = async (userModel, req, res) => {
 			gender,
 			dob,
 			referralCode,
-			emailVerified: true
+			emailVerified: emailVerified,
 		};
 	} else {
 		insertData = {

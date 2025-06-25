@@ -26,6 +26,7 @@ const schema = Joi.object({
     }),
     referralCode: Joi.string().allow(''),
     type: Joi.string(),
+    emailVerified: Joi.boolean(),
     confirmAge: Joi.boolean()
 });
 
