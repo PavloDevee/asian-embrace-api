@@ -84,22 +84,16 @@ chatController.getToken = async (req, res) => {
     console.error("Error generating Zego token:", error);
     // Check if error has a specific structure from generateToken04
     if (error && error.errorCode) {
-
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: error.errorMessage,
-          errorCode: error.errorCode,
-        });
-    }
-    res
-      .status(400)
-      .json({
+      return res.status(400).json({
         success: false,
-        error: error.message || "Failed to generate token",
+        error: error.errorMessage,
+        errorCode: error.errorCode,
       });
-
+    }
+    res.status(400).json({
+      success: false,
+      error: error.message || "Failed to generate token",
+    });
   }
 };
 
@@ -205,7 +199,6 @@ function generateToken04(
   return "04" + Buffer.from(buf).toString("base64");
 }
 
-
 chatController.upload = async (req, res) => {
   try {
     if (req.body.photo) {
@@ -236,7 +229,6 @@ chatController.upload = async (req, res) => {
     return res.status(200).json({
       success: false,
       message: "something went wrong",
-
     });
   }
 };
@@ -314,7 +306,6 @@ chatController.delete = async (req, res) => {
       return sendResponse(res, 404, false, null, "No document found");
     }
 
-
     // Optional: Delete physical file from server
     // attachmentPath = "uploads/chatAttachment/xxx.jpg", але файл знаходиться в "src/public/uploads/..."
     const fullPath = path.join(__dirname, "..", "public", attachmentPath);
@@ -340,10 +331,10 @@ chatController.getVideoSDKToken = async (req, res) => {
 
   // VideoSDK credentials (move to environment variables in production)
   const API_KEY =
-    process.env.VIDEOSDK_API_KEY || "361c3d59-a001-470b-a35d-6d8eac8baffa";
+    process.env.VIDEOSDK_API_KEY || "161dcb90-911d-4e59-a0db-7382b6bad7d0";
   const SECRET =
     process.env.VIDEOSDK_SECRET ||
-    "2ad52fa80ba2acf76b50d39222f83ac387a1af239cfac0e329ce83560c2c3a6e";
+    "d230c4cfda89f582b1993657ac1fc4cddbb5da733bc3ce5ddad00cefd3a05cdd";
 
   if (!API_KEY || !SECRET) {
     console.error(
@@ -381,7 +372,6 @@ chatController.getVideoSDKToken = async (req, res) => {
       error: "Failed to generate VideoSDK token",
       details: error.message,
     });
-
   }
 };
 
