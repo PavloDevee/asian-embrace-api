@@ -77,6 +77,8 @@ const io = socketIo(server, {
 
 // ✅ Existing users for online status
 let users = {}; // Store connected users with their socket IDs
+// 🌐 New online status tracking
+let onlineUsers = {}; // { userId: socketId } for real-time online status
 
 // 🎥 New data structures for video calls
 const connectedUsers = new Map(); // Store users for video calls
@@ -84,13 +86,65 @@ const activeCalls = new Map(); // Store active video calls
 
 // Socket.io connection handling
 io.on("connection", (socket) => {
+  console.log(`🟢 New socket connected: ${socket.id}`);
+  
+  // 🌐 Send current online users to the newly connected client
+  const currentOnlineUsers = Object.keys(onlineUsers);
+  if (currentOnlineUsers.length > 0) {
+    console.log(`📤 Sending current online users to ${socket.id}:`, currentOnlineUsers);
+    currentOnlineUsers.forEach(userId => {
+      socket.emit("user-online-status", { userId, isOnline: true });
+    });
+  }
+
   // ✅ EXISTING FUNCTIONALITY - Online status management
   socket.on("online", async (req) => {
     req.socket_id = socket.id;
     req.is_online = 1;
     users[req.sender_id] = socket.id;
+    
+    // 🌐 Also register for real-time online status
+    if (req.sender_id) {
+      onlineUsers[req.sender_id] = socket.id;
+      console.log(`🟢 User ${req.sender_id} registered via 'online' event`);
+      io.emit("user-online-status", { userId: req.sender_id, isOnline: true });
+    }
+    
     const result = await chatController.onlineOrOffline(req);
     io.to(socket.id).emit("onlineResponse", result);
+  });
+
+  // 🌐 NEW REAL-TIME ONLINE STATUS
+  socket.on("register-online", (userId) => {
+    if (!userId) {
+      console.warn(`⚠️ Attempted to register online with empty userId`);
+      return;
+    }
+    
+    console.log(`🟢 User ${userId} registering as online with socket ${socket.id}`);
+    
+    // Якщо користувач вже був онлайн з іншим socket - оновлюємо
+    const previousSocketId = onlineUsers[userId];
+    if (previousSocketId && previousSocketId !== socket.id) {
+      console.log(`🔄 User ${userId} was online with socket ${previousSocketId}, updating to ${socket.id}`);
+    }
+    
+    onlineUsers[userId] = socket.id;
+    
+    // Сповіщаємо всіх (включно з тим хто реєструється) про статус
+    console.log(`📤 Broadcasting online status for user ${userId} to all clients`);
+    io.emit("user-online-status", { userId, isOnline: true });
+  });
+
+  // 🌐 Request current online users list
+  socket.on("get-online-users", () => {
+    const currentOnlineUsers = Object.keys(onlineUsers);
+    console.log(`📤 Sending online users list to ${socket.id}:`, currentOnlineUsers);
+    
+    // Send all current online users to the requesting client
+    currentOnlineUsers.forEach(userId => {
+      socket.emit("user-online-status", { userId, isOnline: true });
+    });
   });
 
   // 🎥 NEW FUNCTIONALITY - Video calls management
@@ -360,52 +414,31 @@ io.on("connection", (socket) => {
   });
 
   // Handle disconnect
-  socket.on("disconnect", async () => {
-    let disconnectedUserId = null;
+  socket.on("disconnect", () => {
+    console.log(`🔌 Socket ${socket.id} disconnected`);
+    
+    // Знаходимо всіх користувачів з цим socket.id
+    const disconnectedUsers = Object.keys(onlineUsers).filter(key => onlineUsers[key] === socket.id);
+    
+    disconnectedUsers.forEach(userId => {
+      delete onlineUsers[userId];
+      console.log(`🔴 User ${userId} went offline (socket ${socket.id} disconnected)`);
+      // Сповіщаємо всіх про зміну статусу
+      console.log(`📤 Broadcasting offline status for user ${userId} to all clients`);
+      io.emit("user-online-status", { userId, isOnline: false });
+    });
 
-    // ✅ EXISTING FUNCTIONALITY - Handle online status disconnect
-    for (const userId in users) {
-      if (users[userId] === socket.id) {
-        disconnectedUserId = userId;
-        delete users[userId];
-        console.log(
-          `User ${userId} with socket ${socket.id} removed from online users.`
-        );
-        break;
-      }
-    }
+    // Також видаляємо з users об'єкта
+    const disconnectedFromUsers = Object.keys(users).filter(key => users[key] === socket.id);
+    disconnectedFromUsers.forEach(userId => {
+      delete users[userId];
+    });
 
-    const req = {
-      socket_id: socket.id,
-      is_online: 0,
-    };
-
-    // Update user status in the database
-    await chatController.onlineOrOffline(req);
-    console.log(`Socket ${socket.id} disconnected. User marked offline.`);
-
-    // 🎥 NEW FUNCTIONALITY - Handle video call disconnect
+    // Existing disconnect logic for video calls
     const user = connectedUsers.get(socket.id);
     if (user) {
-      console.log(`🎥 ${user.name} disconnected from video calls`);
-
-      // Remove user from connected users
+      console.log(`🎥 User ${user.name} disconnected from video calls`);
       connectedUsers.delete(socket.id);
-
-      // Cancel any active calls from this user
-      for (const [meetingId, call] of activeCalls.entries()) {
-        if (call.from.socketId === socket.id) {
-          // Notify receiver that caller disconnected
-          socket.to(call.to).emit("call-cancelled", {
-            meetingId,
-            reason: "caller-disconnected",
-            timestamp: Date.now(),
-          });
-          activeCalls.delete(meetingId);
-        }
-      }
-
-      // Broadcast updated user list
       io.emit("users-updated", Array.from(connectedUsers.values()));
     }
   });
