@@ -65,10 +65,14 @@ if (process.env.IS_SSL == "true") {
 }
 
 const SOCKET_URL = process.env.SOCKET_URL;
+const WEBSITE_URL = process.env.WEBSITE_URL;
+
+console.log("SOCKET_URL", SOCKET_URL);
+console.log("WEBSITE_URL", WEBSITE_URL);
 
 const io = socketIo(server, {
   cors: {
-    origin: SOCKET_URL,
+    origin: [WEBSITE_URL, "http://localhost:5173", "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["my-custom-header"],
@@ -87,12 +91,15 @@ const activeCalls = new Map(); // Store active video calls
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(`🟢 New socket connected: ${socket.id}`);
-  
+
   // 🌐 Send current online users to the newly connected client
   const currentOnlineUsers = Object.keys(onlineUsers);
   if (currentOnlineUsers.length > 0) {
-    console.log(`📤 Sending current online users to ${socket.id}:`, currentOnlineUsers);
-    currentOnlineUsers.forEach(userId => {
+    console.log(
+      `📤 Sending current online users to ${socket.id}:`,
+      currentOnlineUsers
+    );
+    currentOnlineUsers.forEach((userId) => {
       socket.emit("user-online-status", { userId, isOnline: true });
     });
   }
@@ -102,14 +109,14 @@ io.on("connection", (socket) => {
     req.socket_id = socket.id;
     req.is_online = 1;
     users[req.sender_id] = socket.id;
-    
+
     // 🌐 Also register for real-time online status
     if (req.sender_id) {
       onlineUsers[req.sender_id] = socket.id;
       console.log(`🟢 User ${req.sender_id} registered via 'online' event`);
       io.emit("user-online-status", { userId: req.sender_id, isOnline: true });
     }
-    
+
     const result = await chatController.onlineOrOffline(req);
     io.to(socket.id).emit("onlineResponse", result);
   });
@@ -120,29 +127,38 @@ io.on("connection", (socket) => {
       console.warn(`⚠️ Attempted to register online with empty userId`);
       return;
     }
-    
-    console.log(`🟢 User ${userId} registering as online with socket ${socket.id}`);
-    
+
+    console.log(
+      `🟢 User ${userId} registering as online with socket ${socket.id}`
+    );
+
     // Якщо користувач вже був онлайн з іншим socket - оновлюємо
     const previousSocketId = onlineUsers[userId];
     if (previousSocketId && previousSocketId !== socket.id) {
-      console.log(`🔄 User ${userId} was online with socket ${previousSocketId}, updating to ${socket.id}`);
+      console.log(
+        `🔄 User ${userId} was online with socket ${previousSocketId}, updating to ${socket.id}`
+      );
     }
-    
+
     onlineUsers[userId] = socket.id;
-    
+
     // Сповіщаємо всіх (включно з тим хто реєструється) про статус
-    console.log(`📤 Broadcasting online status for user ${userId} to all clients`);
+    console.log(
+      `📤 Broadcasting online status for user ${userId} to all clients`
+    );
     io.emit("user-online-status", { userId, isOnline: true });
   });
 
   // 🌐 Request current online users list
   socket.on("get-online-users", () => {
     const currentOnlineUsers = Object.keys(onlineUsers);
-    console.log(`📤 Sending online users list to ${socket.id}:`, currentOnlineUsers);
-    
+    console.log(
+      `📤 Sending online users list to ${socket.id}:`,
+      currentOnlineUsers
+    );
+
     // Send all current online users to the requesting client
-    currentOnlineUsers.forEach(userId => {
+    currentOnlineUsers.forEach((userId) => {
       socket.emit("user-online-status", { userId, isOnline: true });
     });
   });
@@ -416,21 +432,29 @@ io.on("connection", (socket) => {
   // Handle disconnect
   socket.on("disconnect", () => {
     console.log(`🔌 Socket ${socket.id} disconnected`);
-    
+
     // Знаходимо всіх користувачів з цим socket.id
-    const disconnectedUsers = Object.keys(onlineUsers).filter(key => onlineUsers[key] === socket.id);
-    
-    disconnectedUsers.forEach(userId => {
+    const disconnectedUsers = Object.keys(onlineUsers).filter(
+      (key) => onlineUsers[key] === socket.id
+    );
+
+    disconnectedUsers.forEach((userId) => {
       delete onlineUsers[userId];
-      console.log(`🔴 User ${userId} went offline (socket ${socket.id} disconnected)`);
+      console.log(
+        `🔴 User ${userId} went offline (socket ${socket.id} disconnected)`
+      );
       // Сповіщаємо всіх про зміну статусу
-      console.log(`📤 Broadcasting offline status for user ${userId} to all clients`);
+      console.log(
+        `📤 Broadcasting offline status for user ${userId} to all clients`
+      );
       io.emit("user-online-status", { userId, isOnline: false });
     });
 
     // Також видаляємо з users об'єкта
-    const disconnectedFromUsers = Object.keys(users).filter(key => users[key] === socket.id);
-    disconnectedFromUsers.forEach(userId => {
+    const disconnectedFromUsers = Object.keys(users).filter(
+      (key) => users[key] === socket.id
+    );
+    disconnectedFromUsers.forEach((userId) => {
       delete users[userId];
     });
 
