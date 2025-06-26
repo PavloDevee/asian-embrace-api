@@ -70,13 +70,24 @@ const WEBSITE_URL = process.env.WEBSITE_URL;
 console.log("SOCKET_URL", SOCKET_URL);
 console.log("WEBSITE_URL", WEBSITE_URL);
 
+const allowedOrigins = [
+  WEBSITE_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
 const io = socketIo(server, {
   cors: {
-    origin: [WEBSITE_URL, "http://localhost:5173", "http://localhost:3000"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["my-custom-header"],
   },
+});
+console.log("🔧 Socket.IO CORS configuration:", {
+  origin: allowedOrigins,
+  methods: ["GET", "POST"],
+  credentials: true,
 });
 
 // ✅ Existing users for online status
