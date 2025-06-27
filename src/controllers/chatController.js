@@ -201,34 +201,63 @@ function generateToken04(
 
 chatController.upload = async (req, res) => {
   try {
-    if (req.body.photo) {
-      const data = {
-        attechment: req.body.photo,
-        sender_id: req.user._id,
-        receiver_id: req.body.receiver_id,
-        attechment_type: req.body.type,
-      };
-
-      // Create a new rose
-      await new ChatAttachment(data).save();
-
-      return res.status(200).json({
-        success: true,
-        data: req.body.photo,
-        message: "Successfully upload attachment",
-      });
-    } else {
-      return res.status(200).json({
+    if (!req.file) {
+      return res.status(400).json({
         success: false,
-        message: "Attachment not upload",
+        message: "No file provided",
       });
     }
-  } catch (error) {
-    console.log("error", error);
+
+    // Determine file type based on mimetype
+    let fileType = "image"; // default
+    let uploadResult;
+
+    if (req.file.mimetype.startsWith("image/")) {
+      fileType = "image";
+      const { uploadImageToSupabase } = require("../helpers/imageUploadHelper");
+      uploadResult = await uploadImageToSupabase(req.file);
+    } else if (req.file.mimetype.startsWith("video/")) {
+      fileType = "video";
+      const { uploadImageToSupabase } = require("../helpers/imageUploadHelper");
+      uploadResult = await uploadImageToSupabase(req.file);
+    } else if (req.file.mimetype.startsWith("audio/")) {
+      fileType = "audio";
+      const { uploadAudioToSupabase } = require("../helpers/audioUploadHelper");
+      uploadResult = await uploadAudioToSupabase(req.file);
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported file type",
+      });
+    }
+
+    if (!uploadResult || !uploadResult.publicUrl) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload file to storage",
+      });
+    }
+
+    // Save attachment record in database
+    const data = {
+      attechment: uploadResult.publicUrl, // Store Supabase URL
+      sender_id: req.user._id,
+      receiver_id: req.body.receiver_id,
+      attechment_type: fileType,
+    };
+
+    await new ChatAttachment(data).save();
 
     return res.status(200).json({
+      success: true,
+      data: uploadResult.publicUrl,
+      message: "Successfully uploaded attachment",
+    });
+  } catch (error) {
+    console.error("Chat attachment upload error:", error);
+    return res.status(500).json({
       success: false,
-      message: "something went wrong",
+      message: error.message || "Something went wrong",
     });
   }
 };
