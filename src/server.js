@@ -244,28 +244,20 @@ io.on("connection", (socket) => {
       });
     }
 
-    // Find the caller's socket ID
-    let callerSocketId = null;
-    for (const [socketId, user] of connectedUsers.entries()) {
-      if (user.key === from._id || user.key === from.key) {
-        callerSocketId = socketId;
-        break;
-      }
-    }
+    // Get the caller's user ID
+    const callerUserId = from._id || from.key;
 
-    if (callerSocketId) {
-      // Notify caller that call was accepted
-      io.to(callerSocketId).emit("call-accepted", {
+    if (callerUserId) {
+      // Notify caller that call was accepted using room-based messaging
+      socket.to(callerUserId).emit("call-accepted", {
         meetingId,
         timestamp: Date.now(),
       });
       console.log(
-        `✅ Notified caller ${from.name || from._id} that call was accepted`
+        `✅ Notified caller ${from.name || callerUserId} that call was accepted`
       );
     } else {
-      console.warn(
-        `❌ Could not find caller socket ID for ${from.name || from._id}`
-      );
+      console.warn(`❌ Could not determine caller user ID from:`, from);
     }
   });
 
@@ -273,7 +265,7 @@ io.on("connection", (socket) => {
   socket.on("reject-call", (callData) => {
     console.log("❌ Call rejected:", callData);
 
-    const { meetingId, from } = callData;
+    const { meetingId, to, from } = callData;
 
     // Update call status
     if (activeCalls.has(meetingId)) {
@@ -283,27 +275,19 @@ io.on("connection", (socket) => {
       });
     }
 
-    // Find the caller's socket ID
-    let callerSocketId = null;
-    for (const [socketId, user] of connectedUsers.entries()) {
-      if (user.key === from._id || user.key === from.key) {
-        callerSocketId = socketId;
-        break;
-      }
-    }
+    // Remove active call since it was rejected
+    activeCalls.delete(meetingId);
 
-    if (callerSocketId) {
-      // Notify caller that call was rejected
-      io.to(callerSocketId).emit("call-rejected", {
+    // Notify caller that call was rejected using room-based messaging
+    if (to) {
+      socket.to(to).emit("call-rejected", {
         meetingId,
         timestamp: Date.now(),
       });
-      console.log(
-        `❌ Notified caller ${from.name || from._id} that call was rejected`
-      );
+      console.log(`❌ Notified caller ${to} that call was rejected`);
     } else {
       console.warn(
-        `❌ Could not find caller socket ID for ${from.name || from._id}`
+        `❌ Could not determine caller user ID to notify about rejection`
       );
     }
   });
@@ -371,6 +355,7 @@ io.on("connection", (socket) => {
       meetingId,
       timestamp: Date.now(),
     });
+    console.log(`🚫 Notified receiver ${to} that call was cancelled`);
   });
 
   // Get online users for video calls
@@ -475,38 +460,6 @@ io.on("connection", (socket) => {
       console.log(`🎥 User ${user.name} disconnected from video calls`);
       connectedUsers.delete(socket.id);
       io.emit("users-updated", Array.from(connectedUsers.values()));
-    }
-  });
-
-  // Обробка увімкнення відео
-  socket.on("video-enabled", (callData) => {
-    console.log("📹 Video enabled:", callData);
-
-    const { meetingId, from, to } = callData;
-
-    // Повідомити іншого учасника
-    if (to) {
-      socket.to(to).emit("video-enabled-by-peer", {
-        meetingId,
-        from,
-        timestamp: Date.now(),
-      });
-    }
-  });
-
-  // Обробка вимкнення відео
-  socket.on("video-disabled", (callData) => {
-    console.log("📹 Video disabled:", callData);
-
-    const { meetingId, from, to } = callData;
-
-    // Повідомити іншого учасника
-    if (to) {
-      socket.to(to).emit("video-disabled-by-peer", {
-        meetingId,
-        from,
-        timestamp: Date.now(),
-      });
     }
   });
 });
