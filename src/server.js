@@ -74,6 +74,7 @@ const allowedOrigins = [
   WEBSITE_URL,
   "http://localhost:5173",
   "http://localhost:3000",
+  // "http://2c31-91-245-79-242.ngrok-free.app",
 ];
 
 const io = socketIo(server, {
