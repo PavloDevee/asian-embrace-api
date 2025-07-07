@@ -218,8 +218,8 @@ chatController.upload = async (req, res) => {
       uploadResult = await uploadImageToSupabase(req.file);
     } else if (req.file.mimetype.startsWith("video/")) {
       fileType = "video";
-      const { uploadImageToSupabase } = require("../helpers/imageUploadHelper");
-      uploadResult = await uploadImageToSupabase(req.file);
+      const { uploadVideoToSupabase } = require("../helpers/videoUploadHelper");
+      uploadResult = await uploadVideoToSupabase(req.file);
     } else if (req.file.mimetype.startsWith("audio/")) {
       fileType = "audio";
       const { uploadAudioToSupabase } = require("../helpers/audioUploadHelper");
@@ -326,7 +326,8 @@ chatController.delete = async (req, res) => {
         { sender_id: currentUserId, receiver_id: otherUserId },
         { sender_id: otherUserId, receiver_id: currentUserId },
       ],
-      attechment: attachmentPath,
+      // attechment: attachmentPath,
+      attechment: attachmentUrl,
     };
 
     const result = await ChatAttachment.findOneAndDelete(filter);
