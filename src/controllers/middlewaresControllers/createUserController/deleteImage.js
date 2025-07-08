@@ -1,5 +1,6 @@
-const { sendResponse } = require('@/helpers');
-const mongoose = require('mongoose');
+const { sendResponse } = require("@/helpers");
+const mongoose = require("mongoose");
+const { deleteVideoFromSupabase } = require("@/helpers/videoUploadHelper");
 
 const deleteImage = async (userModel, req, res) => {
   const User = mongoose.model(userModel);
@@ -15,14 +16,22 @@ const deleteImage = async (userModel, req, res) => {
   };
 
   try {
-
     let result;
 
     if (isVideo(req.body.imagePath)) {
+      // Видалити відео з Supabase
+      try {
+        // Витягти fileName з URL (після останнього /)
+        const url = req.body.imagePath;
+        const fileName = url.split("/").pop();
+        await deleteVideoFromSupabase(fileName);
+      } catch (e) {
+        console.warn("Не вдалося видалити відео з Supabase:", e.message);
+      }
       result = await User.findOneAndUpdate(
         { _id: req.user._id, removed: false },
-        { video: null }, // Remove specific image path from the array
-        { new: true } // Return updated document
+        { video: null }, // Remove video
+        { new: true }
       ).exec();
     } else {
       result = await User.findOneAndUpdate(
@@ -39,7 +48,7 @@ const deleteImage = async (userModel, req, res) => {
     }
   } catch (error) {
     console.log("error", error);
-    
+
     return sendResponse(res, 500, false, null, "Server error");
   }
 };

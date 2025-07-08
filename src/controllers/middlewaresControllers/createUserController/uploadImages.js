@@ -1,5 +1,5 @@
-const { sendResponse } = require('@/helpers');
-const mongoose = require('mongoose');
+const { sendResponse } = require("@/helpers");
+const mongoose = require("mongoose");
 
 const uploadImages = async (userModel, req, res) => {
   const User = mongoose.model(userModel);
@@ -7,7 +7,7 @@ const uploadImages = async (userModel, req, res) => {
 
   const updates = {};
 
-  if (req.body.images.length > 0) {
+  if (Array.isArray(req.body.images) && req.body.images.length > 0) {
     updates.$push = { images: { $each: req.body.images } }; // Push multiple images
   }
 
@@ -23,7 +23,7 @@ const uploadImages = async (userModel, req, res) => {
 
   // If no results found, return document not found
   if (!tmpResult) {
-    return sendResponse(res, 404, false, null, 'No document found');
+    return sendResponse(res, 404, false, null, "No document found");
   } else {
     // Return success resposne
     let result = {
@@ -34,7 +34,13 @@ const uploadImages = async (userModel, req, res) => {
       photo: tmpResult.photo,
       role: tmpResult.role,
     };
-    return sendResponse(res, 200, true, result, 'we update this document photo');
+    return sendResponse(
+      res,
+      200,
+      true,
+      result,
+      "we update this document photo"
+    );
   }
 };
 

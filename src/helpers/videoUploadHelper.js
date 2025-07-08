@@ -67,6 +67,22 @@ async function uploadVideoToSupabase(file) {
   }
 }
 
+async function deleteVideoFromSupabase(fileName) {
+  if (!supabase) {
+    throw new Error("Supabase client not initialized");
+  }
+  if (!fileName) {
+    throw new Error("No file name provided for deletion");
+  }
+  const { error } = await supabase.storage
+    .from(VIDEO_BUCKET_NAME)
+    .remove([fileName]);
+  if (error) {
+    throw new Error(`Failed to delete video: ${error.message}`);
+  }
+  return true;
+}
+
 function getVideoExtension(mimeType) {
   const mimeToExt = {
     "video/mp4": "mp4",
@@ -79,4 +95,4 @@ function getVideoExtension(mimeType) {
   return mimeToExt[mimeType] || "mp4";
 }
 
-module.exports = { uploadVideoToSupabase };
+module.exports = { uploadVideoToSupabase, deleteVideoFromSupabase };

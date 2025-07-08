@@ -22,7 +22,10 @@ const interestController = require("@/controllers/appControllers/interestControl
 const userSubscriptionController = require("@/controllers/appControllers/userSubscriptionController");
 const planController = require("@/controllers/appControllers/planController");
 const chatController = require("@/controllers/chatController");
-const { handleImageUpload } = require("@/controllers/imageStorageController");
+const {
+  handleImageUpload,
+  handleVideoUpload,
+} = require("@/controllers/imageStorageController");
 const { handleAudioUpload } = require("@/controllers/audioStorageController");
 
 // Image Storage Configuration
@@ -101,6 +104,21 @@ const audioUpload = multer({
   fileFilter: audioFileFilter,
   limits: {
     fileSize: 10 * 1024 * 1024, // 10 MB limit for audio uploads
+  },
+});
+
+const videoFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("video/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Not a video! Please upload only video files."), false);
+  }
+};
+const uploadVideo = multer({
+  storage: storage,
+  fileFilter: videoFileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50 MB limit for video uploads
   },
 });
 
@@ -426,6 +444,13 @@ router.post(
   "/storage/audio-upload",
   audioUpload.single("audioFile"),
   catchErrors(handleAudioUpload)
+);
+
+// Video Storage Route
+router.post(
+  "/storage/upload-video",
+  uploadVideo.single("videoFile"),
+  catchErrors(handleVideoUpload)
 );
 
 // Middleware to handle multer errors specifically
