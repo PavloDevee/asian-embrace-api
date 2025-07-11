@@ -74,7 +74,8 @@ const allowedOrigins = [
   WEBSITE_URL,
   "http://localhost:5173",
   "http://localhost:3001",
-  // "http://2c31-91-245-79-242.ngrok-free.app",
+  "http://192.168.88.208:5173",
+  // "https://d4a2e58e53bb.ngrok-free.app"
 ];
 
 const io = socketIo(server, {
@@ -179,7 +180,7 @@ io.on("connection", (socket) => {
 
   // User registration for video calls
   socket.on("register-user", (userData) => {
-    console.log("🎥 User registered for video calls:", userData);
+    // console.log("🎥 User registered for video calls:", userData);
 
     // Remove any existing connections for this user
     for (const [socketId, user] of connectedUsers.entries()) {
