@@ -52,8 +52,8 @@ chatController.getToken = async (req, res) => {
   // const secret = "977c3c122c7ec6dff6bbfe5d397322a1"; // Replace with your Server Secret
   const appId = parseInt(process.env.ZEGO_APP_ID, 10); // Load from environment variable
   const secret = process.env.ZEGO_SERVER_SECRET; // Load from environment variable
-  console.log("appId", appId);
-  console.log("secret", secret);
+  // console.log("appId", appId);
+  // console.log("secret", secret);
   if (!appId || !secret) {
     console.error(
       "Zego AppID or Server Secret is not configured in environment variables."

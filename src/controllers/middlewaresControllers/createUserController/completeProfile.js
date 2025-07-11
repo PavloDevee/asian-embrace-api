@@ -1,17 +1,22 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const { generate: uniqueId } = require('shortid');
-const { sendResponse } = require('@/helpers');
-const { normalizeWeight, normalizeHeight, getPreferredUnitSystem, formatUserDataForResponse } = require('@/helpers/unitConversions');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const { generate: uniqueId } = require("shortid");
+const { sendResponse } = require("@/helpers");
+const {
+  normalizeWeight,
+  normalizeHeight,
+  getPreferredUnitSystem,
+  formatUserDataForResponse,
+} = require("@/helpers/unitConversions");
 // const schema = require('./schemaValidateUpdate');
 
 const completeProfile = async (userModel, req, res) => {
   const User = mongoose.model(userModel);
   let body = req.body;
   console.log("body", body);
-  
-  if(!body.step){
-    return sendResponse(res, 404, false, null, 'Step is required');
+
+  if (!body.step) {
+    return sendResponse(res, 404, false, null, "Step is required");
   }
 
   let updates;
@@ -19,26 +24,29 @@ const completeProfile = async (userModel, req, res) => {
   if (body.step === 1) {
     updates = {
       country: body.country,
-      city: body.city
-    }
+      state: body.state,
+      city: body.city,
+    };
   } else if (body.step === 2) {
     updates = {
-      headLine: body.headLine
-    }
+      headLine: body.headLine,
+    };
   } else if (body.step === 3) {
     updates = {
-      describesAnimalType: body.describesAnimalType
-    }
+      describesAnimalType: body.describesAnimalType,
+    };
   } else if (body.step === 4) {
     // Set preferred units based on country if not already set
-    const preferredUnits = body.preferredUnits || getPreferredUnitSystem(body.country || 'United States');
-    
+    const preferredUnits =
+      body.preferredUnits ||
+      getPreferredUnitSystem(body.country || "United States");
+
     updates = {
       weight: normalizeWeight(body.weight, preferredUnits),
       height: normalizeHeight(body.height, preferredUnits),
       preferredUnits,
-      isProfileComplete: true
-    }
+      isProfileComplete: true,
+    };
   }
 
   // let { email, password, name, countryCode, gender, dob, phoneNumber, address, lat, long, photo, otherGender } = value;
@@ -79,7 +87,13 @@ const completeProfile = async (userModel, req, res) => {
   ).exec();
 
   if (!result) {
-    return sendResponse(res, 404, false, null, 'No profile found by this id: ' + req.user._id);
+    return sendResponse(
+      res,
+      404,
+      false,
+      null,
+      "No profile found by this id: " + req.user._id
+    );
   }
 
   const resultData = {
@@ -90,13 +104,19 @@ const completeProfile = async (userModel, req, res) => {
     photo: result?.photo,
     weight: result?.weight,
     height: result?.height,
-    preferredUnits: result?.preferredUnits
-  }
+    preferredUnits: result?.preferredUnits,
+  };
 
   // Format the result data for response
   const formattedResult = formatUserDataForResponse(resultData);
 
-  return sendResponse(res, 200, true, formattedResult, 'we update this profile');
+  return sendResponse(
+    res,
+    200,
+    true,
+    formattedResult,
+    "we update this profile"
+  );
 };
 
 module.exports = completeProfile;
